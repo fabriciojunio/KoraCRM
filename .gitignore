@@ -1,0 +1,31 @@
+# Backend
+backend/vendor/
+backend/.env
+backend/storage/logs/*.log
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/bootstrap/cache/*.php
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/coverage/
+frontend/.eslintcache
+
+# Banco local / caches de teste
+backend/database/*.sqlite
+backend/.phpunit.result.cache
+backend/.phpunit.cache/
+backend/coverage/
+backend/coverage.xml
+
+# Docker
+docker/mysql/data/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

@@ -1,0 +1,146 @@
+version: '3.9'
+
+services:
+
+  # ─── NGINX — Proxy reverso e servidor de arquivos estáticos ────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: koracrm_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./backend:/var/www/backend:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - koracrm_network
+    restart: unless-stopped
+
+  # ─── BACKEND — PHP 8.2 + Laravel ──────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile
+      target: desenvolvimento
+    container_name: koracrm_backend
+    volumes:
+      - ./backend:/var/www/backend
+      - ./docker/backend/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - koracrm_network
+    restart: unless-stopped
+
+  # ─── FRONTEND — React + Vite ───────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+      target: desenvolvimento
+    container_name: koracrm_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost/api
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - koracrm_network
+    restart: unless-stopped
+
+  # ─── MYSQL 8.0 ─────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: koracrm_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_dev
+      MYSQL_DATABASE: koracrm
+      MYSQL_USER: koracrm_user
+      MYSQL_PASSWORD: koracrm_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - koracrm_mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - koracrm_network
+    restart: unless-stopped
+
+  # ─── MYSQL para testes (banco isolado) ─────────────────────────────────────
+  mysql_test:
+    image: mysql:8.0
+    container_name: koracrm_mysql_test
+    environment:
+      MYSQL_ROOT_PASSWORD: root_test
+      MYSQL_DATABASE: koracrm_test
+      MYSQL_USER: koracrm_test
+      MYSQL_PASSWORD: koracrm_test
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - koracrm_network
+    restart: unless-stopped
+
+  # ─── REDIS ─────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: koracrm_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - koracrm_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - koracrm_network
+    restart: unless-stopped
+
+  # ─── WORKER DE FILAS ───────────────────────────────────────────────────────
+  worker:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile
+      target: desenvolvimento
+    container_name: koracrm_worker
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    volumes:
+      - ./backend:/var/www/backend
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - koracrm_network
+    restart: unless-stopped
+
+networks:
+  koracrm_network:
+    driver: bridge
+
+volumes:
+  koracrm_mysql_data:
+  koracrm_redis_data:
