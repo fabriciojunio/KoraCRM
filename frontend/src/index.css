@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Tokens centrais do tema. Para mudar a aparência do sistema, comece
+  por aqui (e pela escala "brand" em tailwind.config.js).
+*/
+:root {
+  --app-bg: #f4f5f4;
+  --surface: #ffffff;
+  --border: #e4e7e5;
+  --text: #16201d;
+  --muted: #6a766f;
+
+  --sidebar-bg: #0d1c18;
+  --sidebar-fg: #cdd6d2;
+  --sidebar-fg-dim: #7e8c86;
+  --sidebar-active: rgba(255, 255, 255, 0.08);
+
+  --r: 10px;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--app-bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* Superfícies: borda fina (hairline), sem sombra de template */
+  .card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 1.25rem;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-brand-700 hover:bg-brand-800
+           text-white text-sm font-medium px-4 py-2 rounded-md transition-colors
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-700
+           disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50
+           text-gray-700 text-sm font-medium px-4 py-2 rounded-md
+           border border-gray-200 transition-colors
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-700;
+  }
+
+  .input {
+    background-color: var(--surface);
+    @apply w-full px-3 py-2 text-sm rounded-md border border-gray-300
+           transition-colors placeholder-gray-400
+           focus:outline-none focus:ring-1 focus:ring-brand-700 focus:border-brand-700;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  /* Métrica: tipográfica, com fina régua de acento à esquerda
+     (sem o quadradinho de ícone colorido típico de template) */
+  .stat {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    @apply relative overflow-hidden px-4 py-4 pl-5;
+  }
+
+  .stat::before {
+    content: '';
+    @apply absolute left-0 top-0 bottom-0 w-1 bg-brand-600;
+  }
+
+  .stat-label {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-gray-500;
+  }
+
+  .stat-value {
+    @apply mt-2 text-[26px] leading-none font-semibold text-gray-900 tabular-nums;
+  }
+
+  .stat-sub {
+    @apply mt-1.5 text-xs text-gray-500;
+  }
+
+  .nav-link {
+    color: var(--sidebar-fg-dim);
+    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors;
+  }
+
+  .nav-link:hover {
+    color: var(--sidebar-fg);
+    background-color: var(--sidebar-active);
+  }
+
+  .nav-link-active {
+    color: #ffffff;
+    background-color: var(--sidebar-active);
+  }
+}

@@ -13,6 +13,9 @@ frontend/dist/
 frontend/.env
 frontend/coverage/
 frontend/.eslintcache
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
 
 # Banco local / caches de teste
 backend/database/*.sqlite

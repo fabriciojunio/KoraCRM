@@ -1,0 +1,238 @@
+name: KoraCRM — Pipeline CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+
+  # ─── QUALIDADE DE CÓDIGO ────────────────────────────────────────────────────
+  lint-backend:
+    name: Lint Backend (PHP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Instalar dependências
+        run: |
+          cd backend
+          composer install --no-interaction --no-progress
+
+      - name: PHP CS Fixer (formatação)
+        run: |
+          cd backend
+          vendor/bin/pint --test
+
+      - name: PHPStan (análise estática)
+        run: |
+          cd backend
+          vendor/bin/phpstan analyse --no-progress
+
+  lint-frontend:
+    name: Lint Frontend (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: |
+          cd frontend
+          npm ci
+
+      - name: ESLint
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: TypeScript check
+        run: |
+          cd frontend
+          npm run type-check
+
+  # ─── TESTES BACKEND ─────────────────────────────────────────────────────────
+  testes-backend:
+    name: Testes Backend (Pest PHP)
+    runs-on: ubuntu-latest
+    needs: lint-backend
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root_test
+          MYSQL_DATABASE: koracrm_test
+          MYSQL_USER: koracrm_test
+          MYSQL_PASSWORD: koracrm_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql, mbstring, redis
+          coverage: xdebug
+
+      - name: Instalar dependências
+        run: |
+          cd backend
+          composer install --no-interaction --no-progress
+
+      - name: Configurar ambiente de teste
+        run: |
+          cd backend
+          cp .env.example .env.testing
+          php artisan key:generate --env=testing
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: koracrm_test
+          DB_USERNAME: koracrm_test
+          DB_PASSWORD: koracrm_test
+
+      - name: Executar testes com cobertura
+        run: |
+          cd backend
+          vendor/bin/pest --coverage --coverage-clover coverage.xml --min=80
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: koracrm_test
+          DB_USERNAME: koracrm_test
+          DB_PASSWORD: koracrm_test
+          REDIS_HOST: 127.0.0.1
+          CACHE_STORE: array
+          QUEUE_CONNECTION: sync
+
+      - name: Upload cobertura para Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: backend/coverage.xml
+          flags: backend
+
+  # ─── TESTES FRONTEND ────────────────────────────────────────────────────────
+  testes-frontend:
+    name: Testes Frontend (Vitest)
+    runs-on: ubuntu-latest
+    needs: lint-frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Executar testes
+        run: |
+          cd frontend
+          npm run test:coverage
+
+      - name: Upload cobertura para Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: frontend/coverage/lcov.info
+          flags: frontend
+
+  # ─── BUILD DOCKER ──────────────────────────────────────────────────────────
+  build:
+    name: Build Imagens Docker
+    runs-on: ubuntu-latest
+    needs: [testes-backend, testes-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build e push — Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./docker/backend/Dockerfile
+          target: producao
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/koracrm-backend:latest
+            ${{ secrets.DOCKER_USERNAME }}/koracrm-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build e push — Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./docker/frontend/Dockerfile
+          target: producao
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/koracrm-frontend:latest
+            ${{ secrets.DOCKER_USERNAME }}/koracrm-frontend:${{ github.sha }}
+
+  # ─── DEPLOY (apenas main) ──────────────────────────────────────────────────
+  deploy:
+    name: Deploy em Produção
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Deploy via SSH no EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            cd /opt/auroraflow
+            docker-compose pull
+            docker-compose up -d --no-deps backend frontend
+            docker-compose exec -T backend php artisan migrate --force
+            docker-compose exec -T backend php artisan config:cache
+            docker-compose exec -T backend php artisan route:cache
+            echo "Deploy concluído em $(date)"
