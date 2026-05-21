@@ -1,6 +1,6 @@
-import { useMoverLead } from '../../hooks/useLeads'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../lib/api'
+import { useMoverLead, usePipeline } from '../../hooks/useLeads'
+import { useQueryClient } from '@tanstack/react-query'
+import { isDemo } from '../../lib/demoData'
 import type { Lead, EstagioLead } from '../../types'
 import { useState } from 'react'
 import { DollarSign, User } from 'lucide-react'
@@ -117,24 +117,9 @@ export default function PipelinePage() {
   const queryClient = useQueryClient()
   const moverLead = useMoverLead()
   const [leadArrastando, setLeadArrastando] = useState<Lead | null>(null)
+  const demo = isDemo()
 
-  const { data: pipeline, isLoading } = useQuery({
-    queryKey: ['pipeline'],
-    queryFn: async () => {
-      // Busca todos os leads e agrupa por estágio
-      const { data } = await api.get<{ data: Lead[] }>('/leads', {
-        params: { por_pagina: 200 }
-      })
-      const agrupado: Record<EstagioLead, Lead[]> = {
-        novo: [], contato: [], proposta: [], ganho: [], perdido: []
-      }
-      data.data.forEach((lead) => {
-        agrupado[lead.estagio].push(lead)
-      })
-      return agrupado
-    },
-    staleTime: 15_000,
-  })
+  const { data: pipeline, isLoading } = usePipeline()
 
   const handleDrop = async (novoEstagio: EstagioLead) => {
     if (!leadArrastando || leadArrastando.estagio === novoEstagio) return
@@ -142,10 +127,14 @@ export default function PipelinePage() {
       alert('Este lead já está fechado e não pode ser movido.')
       return
     }
+    if (demo) {
+      setLeadArrastando(null)
+      return
+    }
 
     try {
       await moverLead.mutateAsync({ id: leadArrastando.id, estagio: novoEstagio })
-      queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+      queryClient.invalidateQueries({ queryKey: ['leads', 'pipeline'] })
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { mensagem?: string } } })?.response?.data?.mensagem
       alert(msg ?? 'Não foi possível mover o lead.')
@@ -168,6 +157,15 @@ export default function PipelinePage() {
         <h1 className="text-2xl font-bold text-gray-900">Pipeline</h1>
         <p className="text-gray-500 text-sm mt-1">Arraste os cards para mover leads entre estágios</p>
       </div>
+
+      {demo && (
+        <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-2.5 flex items-center gap-2">
+          <span className="text-sm">👤</span>
+          <p className="text-sm text-violet-700 font-medium">
+            Modo demonstração — arraste os cards para visualizar o fluxo do pipeline
+          </p>
+        </div>
+      )}
 
       <div className="overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-max">
