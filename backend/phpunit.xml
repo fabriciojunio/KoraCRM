@@ -21,7 +21,7 @@
 
     <php>
         <env name="APP_ENV" value="testing"/>
-        <env name="APP_KEY" value="base64:test_key_replace_with_php_artisan_key_generate="/>
+        <env name="APP_KEY" value="base64:SdJEbeQqniIibJDX7hwLli0PnMuAbF8QboLoACKg9ik="/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
         <env name="DB_CONNECTION" value="sqlite"/>
