@@ -33,3 +33,55 @@ jobs:
       - name: Instalar dependencias
         working-directory: frontend
         run: npm install
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: [verificar-backend, verificar-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Criar registro de deployment
+        uses: chrnorm/deployment-action@v2
+        id: deployment
+        with:
+          token: ${{ github.token }}
+          environment: production
+          initial-status: in_progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy para Vercel
+        working-directory: frontend
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        env:
+          VERCEL_ORG_ID: team_SEbBZxQ9aO2or7wcwtT2qt41
+          VERCEL_PROJECT_ID: prj_ixyMAElttoBiQRZBZbrkEZBIopYR
+
+      - name: Atualizar status do deployment (sucesso)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: success
+          environment-url: https://koracrm-frontend.vercel.app
+
+      - name: Atualizar status do deployment (falha)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: failure
