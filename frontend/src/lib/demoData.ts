@@ -47,13 +47,13 @@ export const DEMO_LEADS: Lead[] = [
 ]
 
 export const DEMO_TAREFAS: Tarefa[] = [
-  { id: 1, titulo: 'Enviar proposta comercial', descricao: 'Preparar proposta detalhada com cronograma de implantação', prazo: '2024-05-24', concluida: false, prioridade: 'alta', lead_id: 1, responsavel: { id: 0, nome: 'Usuário Demo', email: 'demo@koracrm.com' }, criado_em: '2024-05-19T16:45:00Z' },
-  { id: 2, titulo: 'Reunião de alinhamento técnico', prazo: '2024-05-22', concluida: false, prioridade: 'alta', lead_id: 2, responsavel: { id: 0, nome: 'Usuário Demo', email: 'demo@koracrm.com' }, criado_em: '2024-05-15T11:00:00Z' },
-  { id: 3, titulo: 'Follow-up após demo', prazo: '2024-05-21', concluida: false, prioridade: 'media', lead_id: 3, responsavel: { id: 0, nome: 'Usuário Demo', email: 'demo@koracrm.com' }, criado_em: '2024-05-12T09:00:00Z' },
-  { id: 4, titulo: 'Enviar contrato para assinatura', prazo: '2024-05-19', concluida: false, prioridade: 'alta', lead_id: 7, responsavel: { id: 0, nome: 'Usuário Demo', email: 'demo@koracrm.com' }, criado_em: '2024-05-13T14:30:00Z' },
-  { id: 5, titulo: 'Ligar para confirmar interesse', prazo: '2024-05-23', concluida: false, prioridade: 'media', lead_id: 8, responsavel: { id: 0, nome: 'Usuário Demo', email: 'demo@koracrm.com' }, criado_em: '2024-05-14T10:00:00Z' },
-  { id: 6, titulo: 'Apresentação de onboarding', prazo: '2024-05-20', concluida: true, concluida_em: '2024-05-20T15:00:00Z', prioridade: 'alta', lead_id: 5, responsavel: { id: 0, nome: 'Usuário Demo', email: 'demo@koracrm.com' }, criado_em: '2024-05-01T09:00:00Z' },
-  { id: 7, titulo: 'Enviar materiais de suporte', prazo: '2024-05-25', concluida: false, prioridade: 'baixa', lead_id: 4, responsavel: { id: 0, nome: 'Usuário Demo', email: 'demo@koracrm.com' }, criado_em: '2024-05-16T16:00:00Z' },
+  { id: 1, titulo: 'Enviar proposta comercial', descricao: 'Preparar proposta detalhada com cronograma de implantação', prazo: '2024-05-24', concluida: false, prioridade: 'alta', lead_id: 1, responsavel: { id: 0, nome: 'Usuário Demo' }, criado_em: '2024-05-19T16:45:00Z' },
+  { id: 2, titulo: 'Reunião de alinhamento técnico', prazo: '2024-05-22', concluida: false, prioridade: 'alta', lead_id: 2, responsavel: { id: 0, nome: 'Usuário Demo' }, criado_em: '2024-05-15T11:00:00Z' },
+  { id: 3, titulo: 'Follow-up após demo', prazo: '2024-05-21', concluida: false, prioridade: 'media', lead_id: 3, responsavel: { id: 0, nome: 'Usuário Demo' }, criado_em: '2024-05-12T09:00:00Z' },
+  { id: 4, titulo: 'Enviar contrato para assinatura', prazo: '2024-05-19', concluida: false, prioridade: 'alta', lead_id: 7, responsavel: { id: 0, nome: 'Usuário Demo' }, criado_em: '2024-05-13T14:30:00Z' },
+  { id: 5, titulo: 'Ligar para confirmar interesse', prazo: '2024-05-23', concluida: false, prioridade: 'media', lead_id: 8, responsavel: { id: 0, nome: 'Usuário Demo' }, criado_em: '2024-05-14T10:00:00Z' },
+  { id: 6, titulo: 'Apresentação de onboarding', prazo: '2024-05-20', concluida: true, concluida_em: '2024-05-20T15:00:00Z', prioridade: 'alta', lead_id: 5, responsavel: { id: 0, nome: 'Usuário Demo' }, criado_em: '2024-05-01T09:00:00Z' },
+  { id: 7, titulo: 'Enviar materiais de suporte', prazo: '2024-05-25', concluida: false, prioridade: 'baixa', lead_id: 4, responsavel: { id: 0, nome: 'Usuário Demo' }, criado_em: '2024-05-16T16:00:00Z' },
 ]
 
 export function isDemo(): boolean {
