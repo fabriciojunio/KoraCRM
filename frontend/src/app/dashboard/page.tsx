@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { isDemo, DEMO_METRICAS, DEMO_ATIVIDADES } from '../../lib/demoData'
 import type { MetricasDashboard } from '../../types'
 
 const estagioLabel: Record<string, string> = {
@@ -37,9 +38,12 @@ function Stat({
 }
 
 export default function Dashboard() {
+  const demo = isDemo()
+
   const { data: metricas, isLoading } = useQuery({
     queryKey: ['dashboard', 'metricas'],
     queryFn: async () => {
+      if (demo) return DEMO_METRICAS
       const { data } = await api.get<MetricasDashboard>('/dashboard/metricas')
       return data
     },
@@ -48,6 +52,7 @@ export default function Dashboard() {
   const { data: atividades } = useQuery({
     queryKey: ['dashboard', 'atividades'],
     queryFn: async () => {
+      if (demo) return DEMO_ATIVIDADES
       const { data } = await api.get<Array<{
         id: number
         tipo: string
@@ -73,6 +78,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-7">
+      {demo && (
+        <div className="bg-violet-50 border border-violet-200 rounded-xl px-4 py-2.5 flex items-center gap-2">
+          <span className="text-sm">👤</span>
+          <p className="text-sm text-violet-700 font-medium">
+            Modo demonstração — dados fictícios para visualização
+          </p>
+        </div>
+      )}
+
       <header>
         <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
         <p className="text-sm text-gray-500 mt-0.5">

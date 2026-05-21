@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { isDemo, DEMO_TAREFAS } from '../../lib/demoData'
 import type { Tarefa } from '../../types'
 import { CheckCircle2, Circle, AlertTriangle, Clock } from 'lucide-react'
 import { useState } from 'react'
@@ -64,7 +65,8 @@ export default function TarefasPage() {
 
   const { data: tarefas, isLoading } = useQuery({
     queryKey: ['tarefas'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Tarefa[]> => {
+      if (isDemo()) return DEMO_TAREFAS
       const { data } = await api.get<Tarefa[]>('/tarefas')
       return data
     },

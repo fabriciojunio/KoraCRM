@@ -148,9 +148,18 @@ export default function FormLogin() {
           </form>
 
           <div className="mt-6">
+            {/* Credenciais de demonstração */}
+            <div className="mb-4 p-3 bg-brand-50 border border-brand-200 rounded-xl">
+              <p className="text-xs font-semibold text-brand-700 mb-1.5">Credenciais de demonstração</p>
+              <div className="space-y-0.5 text-xs text-brand-600 font-mono">
+                <p>E-mail: <span className="font-semibold">demo@koracrm.com</span></p>
+                <p>Senha: <span className="font-semibold">demo1234</span></p>
+              </div>
+            </div>
+
             <div className="relative flex items-center gap-3 mb-4">
               <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400 whitespace-nowrap">ou explore sem cadastro</span>
+              <span className="text-xs text-gray-400 whitespace-nowrap">ou acesso instantâneo</span>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
