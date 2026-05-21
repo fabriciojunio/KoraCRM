@@ -16,7 +16,7 @@ const esquemaLogin = z.object({
 type DadosLogin = z.infer<typeof esquemaLogin>
 
 export default function FormLogin() {
-  const { login, carregando, erro } = useAuth()
+  const { login, loginDemo, carregando, erro } = useAuth()
 
   const {
     register,
@@ -102,6 +102,20 @@ export default function FormLogin() {
             {carregando ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
+
+        <div className="mt-6 pt-5 border-t border-gray-100 flex flex-col items-center gap-3">
+          <p className="text-xs text-gray-400">Quer explorar sem cadastro?</p>
+          <button
+            type="button"
+            onClick={loginDemo}
+            className="w-full py-2.5 px-4 bg-violet-50 hover:bg-violet-100 text-violet-700
+              font-semibold rounded-lg transition border border-violet-200 focus:outline-none
+              focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 flex items-center justify-center gap-2"
+          >
+            <span className="text-base">👤</span>
+            <span>Entrar como demonstração</span>
+          </button>
+        </div>
       </div>
     </div>
   )

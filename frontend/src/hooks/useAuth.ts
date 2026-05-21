@@ -14,6 +14,7 @@ interface RetornoAuth {
   carregando: boolean
   erro: string | null
   login: (email: string, senha: string) => Promise<void>
+  loginDemo: () => void
   logout: () => Promise<void>
   estaAutenticado: boolean
   isAdmin: boolean
@@ -64,6 +65,21 @@ export function useAuth(): RetornoAuth {
     }
   }, [navigate])
 
+  const loginDemo = useCallback(() => {
+    const demoUser: Usuario = {
+      id: 0,
+      nome: 'Usuário Demo',
+      email: 'demo@koracrm.com',
+      perfil: 'gerente',
+      ativo: true,
+      avatar: 'https://ui-avatars.com/api/?name=Demo&background=4f46e5&color=fff',
+    }
+    localStorage.setItem('koracrm_token', 'demo-token')
+    localStorage.setItem('koracrm_usuario', JSON.stringify(demoUser))
+    setEstado({ usuario: demoUser, carregando: false, erro: null })
+    navigate('/dashboard')
+  }, [navigate])
+
   const logout = useCallback(async () => {
     try {
       await api.post('/auth/logout')
@@ -82,6 +98,7 @@ export function useAuth(): RetornoAuth {
     carregando: estado.carregando,
     erro: estado.erro,
     login,
+    loginDemo,
     logout,
     estaAutenticado: estado.usuario !== null,
     isAdmin: estado.usuario?.perfil === 'admin',
