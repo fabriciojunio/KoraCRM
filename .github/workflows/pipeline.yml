@@ -18,7 +18,7 @@ jobs:
           coverage: none
       - name: Instalar dependencias
         working-directory: backend
-        run: composer install --no-interaction --no-progress --ignore-platform-reqs
+        run: composer install --no-interaction --no-progress --ignore-platform-reqs --no-scripts
 
   verificar-frontend:
     name: Verificar Frontend
