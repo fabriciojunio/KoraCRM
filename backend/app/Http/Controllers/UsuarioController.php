@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 /**
  * @OA\Tag(name="Usuários", description="Gestão de usuários (apenas admin/gerente)")
@@ -59,13 +60,12 @@ class UsuarioController extends Controller
         $dados = $request->validate([
             'nome'   => ['required', 'string', 'max:100'],
             'email'  => ['required', 'email', 'max:150', 'unique:usuarios,email'],
-            'senha'  => ['required', 'string', 'min:8', 'confirmed'],
+            'senha'  => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
             'perfil' => ['required', Rule::in(['admin', 'gerente', 'vendedor'])],
         ], [
-            'email.unique'      => 'Este e-mail já está cadastrado.',
-            'senha.min'         => 'A senha deve ter pelo menos 8 caracteres.',
-            'senha.confirmed'   => 'A confirmação de senha não confere.',
-            'perfil.in'         => 'Perfil inválido.',
+            'email.unique'    => 'Este e-mail já está cadastrado.',
+            'senha.confirmed' => 'A confirmação de senha não confere.',
+            'perfil.in'       => 'Perfil inválido.',
         ]);
 
         $usuario = Usuario::create([
@@ -99,7 +99,7 @@ class UsuarioController extends Controller
             'email'  => ['sometimes', 'email', 'max:150', Rule::unique('usuarios')->ignore($id)],
             'perfil' => ['sometimes', Rule::in(['admin', 'gerente', 'vendedor'])],
             'ativo'  => ['sometimes', 'boolean'],
-            'senha'  => ['nullable', 'string', 'min:8', 'confirmed'],
+            'senha'  => ['nullable', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
         ]);
 
         if (! empty($dados['senha'])) {
