@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\Hash;
 uses(RefreshDatabase::class);
 
 // Helpers de teste
-function usuarioAutenticado(): array
+function usuarioAutenticado(string $perfil = 'vendedor'): array
 {
     $usuario = Usuario::create([
-        'nome' => 'Vendedor Teste',
-        'email' => 'vendedor@koracrm.com.br',
+        'nome' => ucfirst($perfil) . ' Teste',
+        'email' => $perfil . '@koracrm.com.br',
         'senha' => Hash::make('senha123456'),
-        'perfil' => 'vendedor',
+        'perfil' => $perfil,
         'ativo' => true,
     ]);
 
@@ -190,7 +190,7 @@ test('atualiza dados do lead', function () {
 // ─── EXCLUIR LEAD ─────────────────────────────────────────────────────────────
 
 test('exclui lead com soft delete', function () {
-    [$usuario, $token] = usuarioAutenticado();
+    [$usuario, $token] = usuarioAutenticado('gerente');
 
     $lead = Lead::factory()->create(['criado_por' => $usuario->id]);
 

@@ -51,19 +51,19 @@ class AuthController extends Controller
         $token = $usuario->createToken(
             'api-token',
             ['*'],
-            now()->addDays(30)
+            now()->addDays(7)
         );
 
         return response()->json([
             'token' => $token->plainTextToken,
             'usuario' => [
-                'id' => $usuario->id,
-                'nome' => $usuario->nome,
-                'email' => $usuario->email,
+                'id'     => $usuario->id,
+                'nome'   => $usuario->nome,
+                'email'  => $usuario->email,
                 'perfil' => $usuario->perfil,
                 'avatar' => $usuario->avatar,
             ],
-            'expira_em' => now()->addDays(30)->toISOString(),
+            'expira_em' => now()->addDays(7)->toISOString(),
         ]);
     }
 
@@ -94,6 +94,14 @@ class AuthController extends Controller
      */
     public function perfil(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        $usuario = $request->user();
+
+        return response()->json([
+            'id'     => $usuario->id,
+            'nome'   => $usuario->nome,
+            'email'  => $usuario->email,
+            'perfil' => $usuario->perfil,
+            'avatar' => $usuario->avatar,
+        ]);
     }
 }
