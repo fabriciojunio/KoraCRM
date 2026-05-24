@@ -28,7 +28,8 @@ class EloquentLeadRepository implements LeadRepositoryInterface
         }
 
         if (! empty($filtros['busca'])) {
-            $busca = "%{$filtros['busca']}%";
+            $termo = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filtros['busca']);
+            $busca = "%{$termo}%";
             $query->where(function ($q) use ($busca) {
                 $q->where('nome', 'like', $busca)
                   ->orWhere('email', 'like', $busca)
