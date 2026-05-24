@@ -74,6 +74,14 @@ export default function TarefasPage() {
 
   const concluirTarefa = useMutation({
     mutationFn: async (id: number) => {
+      if (isDemo()) {
+        const tarefa = DEMO_TAREFAS.find(t => t.id === id)
+        if (tarefa) {
+          tarefa.concluida = true
+          tarefa.concluida_em = new Date().toISOString()
+        }
+        return
+      }
       await api.patch(`/tarefas/${id}/concluir`)
     },
     onSuccess: () => {
