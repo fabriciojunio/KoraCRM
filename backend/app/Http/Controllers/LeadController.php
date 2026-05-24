@@ -48,12 +48,16 @@ class LeadController extends Controller
             'estagio', 'busca', 'responsavel_id', 'origem',
         ]);
 
+        // Vendedores só veem seus próprios leads
+        if ($request->user()->isVendedor()) {
+            $filtros['responsavel_id'] = $request->user()->id;
+        }
+
         $leads = $this->repositorio->listar(
             filtros: $filtros,
             porPagina: (int) $request->get('por_pagina', 15),
         );
 
-        // ->response() preserva o envelope de paginação (data/links/meta)
         return LeadColecaoResource::collection($leads)->response();
     }
 
@@ -97,6 +101,8 @@ class LeadController extends Controller
             return response()->json(['mensagem' => 'Lead não encontrado.'], 404);
         }
 
+        $this->authorize('view', $lead);
+
         return response()->json(new LeadResource($lead));
     }
 
@@ -116,6 +122,8 @@ class LeadController extends Controller
         if (! $lead) {
             return response()->json(['mensagem' => 'Lead não encontrado.'], 404);
         }
+
+        $this->authorize('update', $lead);
 
         $dadosAntigos = $lead->toArray();
         $dto = AtualizarLeadDTO::fromArray($request->validated());
@@ -150,6 +158,8 @@ class LeadController extends Controller
             return response()->json(['mensagem' => 'Lead não encontrado.'], 404);
         }
 
+        $this->authorize('delete', $lead);
+
         $this->repositorio->excluir($lead);
 
         return response()->json(null, 204);
@@ -167,6 +177,14 @@ class LeadController extends Controller
      */
     public function moverEstagio(MoverLeadRequest $request, int $id): JsonResponse
     {
+        $lead = $this->repositorio->buscarPorId($id);
+
+        if (! $lead) {
+            return response()->json(['mensagem' => 'Lead não encontrado.'], 404);
+        }
+
+        $this->authorize('update', $lead);
+
         try {
             $lead = $this->moverLead->executar(
                 leadId: $id,
@@ -193,6 +211,8 @@ class LeadController extends Controller
             return response()->json(['mensagem' => 'Lead não encontrado.'], 404);
         }
 
+        $this->authorize('view', $lead);
+
         return response()->json(
             $lead->historico()->with('usuario:id,nome')->get()
         );
@@ -207,16 +227,25 @@ class LeadController extends Controller
      *     @OA\Response(response=200, description="Leads agrupados por estágio")
      * )
      */
-    public function pipeline(): JsonResponse
+    public function pipeline(Request $request): JsonResponse
     {
-        $grupos = [];
-
-        $leads = Lead::with([
+        $query = Lead::with([
             'responsavel:id,nome,email',
             'criador:id,nome',
             'tarefas:id,lead_id,concluida',
-        ])->orderByDesc('created_at')->get();
+        ])->orderByDesc('created_at');
 
+        // Vendedores só veem seus próprios leads no pipeline
+        if ($request->user()->isVendedor()) {
+            $query->where(function ($q) use ($request) {
+                $q->where('responsavel_id', $request->user()->id)
+                  ->orWhere('criado_por', $request->user()->id);
+            });
+        }
+
+        $leads = $query->limit(500)->get();
+
+        $grupos = [];
         foreach (Lead::ESTAGIOS as $estagio) {
             $grupos[$estagio] = LeadResource::collection(
                 $leads->where('estagio', $estagio)->values()
@@ -244,6 +273,8 @@ class LeadController extends Controller
         if (! $modelo) {
             return response()->json(['mensagem' => 'Lead não encontrado.'], 404);
         }
+
+        $this->authorize('upload', $modelo);
 
         $request->validate([
             'arquivo' => ['required', 'file', 'max:10240'],

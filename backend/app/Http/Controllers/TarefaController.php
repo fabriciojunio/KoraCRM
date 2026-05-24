@@ -19,23 +19,27 @@ class TarefaController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $tarefas = Tarefa::with(['lead:id,nome', 'responsavel:id,nome'])
-            ->where('responsavel_id', $request->user()->id)
-            ->orderBy('prazo')
-            ->get()
-            ->map(fn ($t) => [
-                'id'           => $t->id,
-                'titulo'       => $t->titulo,
-                'descricao'    => $t->descricao,
-                'prazo'        => $t->prazo?->toISOString(),
-                'concluida'    => $t->concluida,
-                'concluida_em' => $t->concluida_em?->toISOString(),
-                'prioridade'   => $t->prioridade,
-                'atrasada'     => $t->estaAtrasada(),
-                'lead'         => $t->lead ? ['id' => $t->lead->id, 'nome' => $t->lead->nome] : null,
-                'responsavel'  => $t->responsavel ? ['id' => $t->responsavel->id, 'nome' => $t->responsavel->nome] : null,
-                'criado_em'    => $t->created_at->toISOString(),
-            ]);
+        $query = Tarefa::with(['lead:id,nome', 'responsavel:id,nome'])
+            ->orderBy('prazo');
+
+        // Gerentes veem todas; vendedores só as suas
+        if ($request->user()->isVendedor()) {
+            $query->where('responsavel_id', $request->user()->id);
+        }
+
+        $tarefas = $query->get()->map(fn ($t) => [
+            'id'           => $t->id,
+            'titulo'       => $t->titulo,
+            'descricao'    => $t->descricao,
+            'prazo'        => $t->prazo?->toISOString(),
+            'concluida'    => $t->concluida,
+            'concluida_em' => $t->concluida_em?->toISOString(),
+            'prioridade'   => $t->prioridade,
+            'atrasada'     => $t->estaAtrasada(),
+            'lead'         => $t->lead ? ['id' => $t->lead->id, 'nome' => $t->lead->nome] : null,
+            'responsavel'  => $t->responsavel ? ['id' => $t->responsavel->id, 'nome' => $t->responsavel->nome] : null,
+            'criado_em'    => $t->created_at->toISOString(),
+        ]);
 
         return response()->json($tarefas);
     }
@@ -55,6 +59,8 @@ class TarefaController extends Controller
         if (! $tarefa) {
             return response()->json(['mensagem' => 'Tarefa não encontrada.'], 404);
         }
+
+        $this->authorize('view', $tarefa);
 
         return response()->json($tarefa);
     }
@@ -109,6 +115,8 @@ class TarefaController extends Controller
             return response()->json(['mensagem' => 'Tarefa não encontrada.'], 404);
         }
 
+        $this->authorize('update', $tarefa);
+
         $dados = $request->validate([
             'titulo'         => ['sometimes', 'string', 'max:200'],
             'descricao'      => ['nullable', 'string', 'max:2000'],
@@ -136,6 +144,8 @@ class TarefaController extends Controller
             return response()->json(['mensagem' => 'Tarefa não encontrada.'], 404);
         }
 
+        $this->authorize('delete', $tarefa);
+
         $tarefa->delete();
 
         return response()->json(null, 204);
@@ -154,6 +164,8 @@ class TarefaController extends Controller
         if (! $tarefa) {
             return response()->json(['mensagem' => 'Tarefa não encontrada.'], 404);
         }
+
+        $this->authorize('concluir', $tarefa);
 
         if ($tarefa->concluida) {
             return response()->json(['mensagem' => 'Tarefa já está concluída.'], 409);
