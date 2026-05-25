@@ -1,11 +1,13 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import FormLogin from './features/auth/FormLogin'
 import Layout from './components/layout/Layout'
-import Dashboard from './app/dashboard/page'
-import LeadsPage from './app/leads/page'
-import PipelinePage from './app/pipeline/page'
-import TarefasPage from './app/tarefas/page'
+
+const Dashboard    = lazy(() => import('./app/dashboard/page'))
+const LeadsPage    = lazy(() => import('./app/leads/page'))
+const PipelinePage = lazy(() => import('./app/pipeline/page'))
+const TarefasPage  = lazy(() => import('./app/tarefas/page'))
 
 // Rota protegida — redireciona para login se não autenticado
 function RotaProtegida({ children }: { children: React.ReactNode }) {
@@ -30,10 +32,10 @@ export default function App() {
           }
         >
           <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="leads" element={<LeadsPage />} />
-          <Route path="pipeline" element={<PipelinePage />} />
-          <Route path="tarefas" element={<TarefasPage />} />
+          <Route path="dashboard" element={<Suspense fallback={null}><Dashboard /></Suspense>} />
+          <Route path="leads"     element={<Suspense fallback={null}><LeadsPage /></Suspense>} />
+          <Route path="pipeline"  element={<Suspense fallback={null}><PipelinePage /></Suspense>} />
+          <Route path="tarefas"   element={<Suspense fallback={null}><TarefasPage /></Suspense>} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
