@@ -15,6 +15,15 @@ export default defineConfig({
   },
   build: {
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-router': ['react-router-dom'],
+          'vendor-query': ['@tanstack/react-query'],
+        },
+      },
+    },
   },
   server: {
     host: '0.0.0.0',
