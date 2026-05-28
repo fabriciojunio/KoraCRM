@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       // Identidade visual do KoraCRM. Para trocar a cor do sistema,
       // ajuste só esta escala (ou as variáveis em src/index.css).
