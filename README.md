@@ -1,35 +1,12 @@
-<div align="center">
-
 # KoraCRM
-
-**CRM fullstack para gestão de leads, pipeline de vendas e relacionamento com clientes.**
 
 [![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)](https://php.net)
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](#licença)
 
-</div>
-
----
-
-## Sumário
-
-- [Sobre](#sobre)
-- [Stack](#stack)
-- [Arquitetura](#arquitetura)
-- [Pré-requisitos](#pré-requisitos)
-- [Como rodar](#como-rodar)
-- [Credenciais de acesso](#credenciais-de-acesso)
-- [API](#api)
-- [Testes](#testes)
-- [Estrutura do projeto](#estrutura-do-projeto)
-- [CI/CD](#cicd)
-- [Segurança](#segurança)
-- [Autor](#autor)
-- [Licença](#licença)
+CRM fullstack para gestão de leads, pipeline de vendas e relacionamento com clientes.
 
 ---
 
@@ -38,8 +15,7 @@
 O **KoraCRM** é um sistema web fullstack para gestão de **leads**, **pipeline de vendas (Kanban)**,
 **tarefas** e **relacionamento com clientes**, com painel de métricas e controle de acesso por perfil.
 
-O projeto foi construído com foco em **arquitetura limpa**, **testes automatizados**,
-**containerização completa** e **pipeline de CI/CD** — refletindo um ambiente de engenharia real.
+Backend em Clean Architecture com Laravel 11, frontend React + TypeScript, testes unitários e de integração, CI/CD com GitHub Actions e deploy no EC2.
 
 ### Módulos
 
@@ -294,12 +270,6 @@ Pipeline em **GitHub Actions** ([`.github/workflows/pipeline.yml`](.github/workf
 - Soft delete em leads e tarefas
 - Upload com validação de MIME e limite de 10 MB; URLs assinadas no S3 (expiração de 1h)
 - Variáveis sensíveis apenas em `.env`
-
----
-
-## Autor
-
-**Fabrício Júnio**
 
 ---
 
