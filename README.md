@@ -62,7 +62,7 @@ Infrastructure     →  Repositories (Eloquent)
 **Design patterns aplicados:** Repository · Service Layer · DTO · Dependency Injection.
 
 > A interface `LeadRepositoryInterface` (Domain) é resolvida para `EloquentLeadRepository`
-> (Infrastructure) via container de DI no `AppServiceProvider` — os Services nunca
+> (Infrastructure) via container de DI no `AppServiceProvider`: os Services nunca
 > conhecem o Eloquent diretamente.
 
 A documentação técnica completa está em [`docs/documentacao_tecnica.md`](docs/documentacao_tecnica.md).
@@ -181,7 +181,7 @@ DELETE /api/usuarios/{id}           Desativa usuário
 
 ## Testes
 
-### Backend — Pest PHP
+### Backend: Pest PHP
 
 ```bash
 docker-compose exec backend php artisan test
@@ -193,7 +193,7 @@ docker-compose exec backend vendor/bin/pest --coverage --min=80
 Cobre testes **unitários** (Domain e Application, com mocks dos repositórios)
 e de **integração** (Feature: autenticação, leads, tarefas via HTTP).
 
-### Frontend — Vitest
+### Frontend: Vitest
 
 ```bash
 docker-compose exec frontend npm test          # modo watch
@@ -253,10 +253,10 @@ koracrm/
 
 Pipeline em **GitHub Actions** ([`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml)):
 
-1. **Lint / análise estática** — Pint + PHPStan (backend) · ESLint + `tsc` (frontend)
-2. **Testes** — Pest com cobertura (backend) · Vitest com cobertura (frontend) → Codecov
-3. **Build** — imagens Docker de backend e frontend (push para Docker Hub, branch `main`)
-4. **Deploy** — deploy via SSH no EC2 + migrations automáticas (branch `main`)
+1. **Lint / análise estática**: Pint + PHPStan (backend) · ESLint + `tsc` (frontend)
+2. **Testes**: Pest com cobertura (backend) · Vitest com cobertura (frontend) → Codecov
+3. **Build**: imagens Docker de backend e frontend (push para Docker Hub, branch `main`)
+4. **Deploy**: deploy via SSH no EC2 + migrations automáticas (branch `main`)
 
 ---
 
