@@ -1,7 +1,7 @@
 {
   "name": "koracrm-frontend",
   "version": "1.0.0",
-  "description": "KoraCRM — Frontend React TypeScript",
+  "description": "KoraCRM: Frontend React TypeScript",
   "private": true,
   "type": "module",
   "scripts": {
