@@ -32,3 +32,5 @@ docker/mysql/data/
 Thumbs.db
 *.swp
 *.swo
+
+.github/java-upgrade/
