@@ -32,6 +32,8 @@ Route::middleware(['auth:sanctum', GarantirUsuarioAtivo::class, 'throttle:60,1']
     Route::patch('leads/{lead}/estagio', [LeadController::class, 'moverEstagio']);
     Route::get('leads/{lead}/historico', [LeadController::class, 'historico']);
     Route::post('leads/{lead}/arquivos', [LeadController::class, 'uploadArquivo']);
+    Route::get('leads/{lead}/arquivos/{arquivo}', [LeadController::class, 'baixarArquivo'])
+        ->name('leads.arquivos.download');
 
     Route::get('leads/{lead}/dados-pessoais', [DadosPessoaisController::class, 'show']);
     Route::delete('leads/{lead}/dados-pessoais', [DadosPessoaisController::class, 'destroy']);

@@ -127,3 +127,72 @@ test('o tamanho é formatado na unidade que cabe', function () {
         ->and($emKilobytes->tamanhoFormatado())->toBe('2 KB')
         ->and($emMegabytes->tamanhoFormatado())->toBe('3 MB');
 });
+
+function criarArquivoLocalParaLead(Lead $lead, Usuario $usuario): Arquivo
+{
+    $caminho = "leads/{$lead->id}/doc.pdf";
+    Storage::disk('local')->put($caminho, 'conteudo-do-arquivo');
+
+    return Arquivo::create([
+        'lead_id' => $lead->id,
+        'nome_original' => 'doc.pdf',
+        'caminho' => $caminho,
+        'disco' => 'local',
+        'tamanho' => 19,
+        'mime_type' => 'application/pdf',
+        'enviado_por' => $usuario->id,
+    ]);
+}
+
+test('dono do lead baixa o arquivo anexo', function () {
+    Storage::fake('local');
+    [$dono, $lead, $token] = contaComLead(perfil: 'vendedor', email: 'download.dono@koracrm.com.br');
+    $arquivo = criarArquivoLocalParaLead($lead, $dono);
+
+    $resposta = $this->withToken($token)->get("/api/leads/{$lead->id}/arquivos/{$arquivo->id}");
+
+    $resposta->assertOk();
+    expect($resposta->headers->get('content-disposition'))->toContain('attachment');
+});
+
+test('vendedor sem acesso ao lead não baixa o arquivo', function () {
+    Storage::fake('local');
+    [$dono, $lead] = contaComLead(perfil: 'vendedor', email: 'download.proprietario@koracrm.com.br');
+    $arquivo = criarArquivoLocalParaLead($lead, $dono);
+    $intruso = Usuario::create([
+        'nome' => 'Intruso',
+        'email' => 'download.intruso@koracrm.com.br',
+        'senha' => Hash::make('senha123456'),
+        'perfil' => 'vendedor',
+        'ativo' => true,
+    ]);
+
+    $this->withToken($intruso->createToken('api-token')->plainTextToken)
+        ->getJson("/api/leads/{$lead->id}/arquivos/{$arquivo->id}")
+        ->assertForbidden();
+});
+
+test('download de arquivo exige autenticação', function () {
+    Storage::fake('local');
+    [$dono, $lead] = contaComLead(perfil: 'vendedor', email: 'download.anonimo@koracrm.com.br');
+    $arquivo = criarArquivoLocalParaLead($lead, $dono);
+
+    $this->getJson("/api/leads/{$lead->id}/arquivos/{$arquivo->id}")->assertUnauthorized();
+});
+
+test('gerente baixa arquivo de lead de outro usuário', function () {
+    Storage::fake('local');
+    [$dono, $lead] = contaComLead(perfil: 'vendedor', email: 'download.gerente-dono@koracrm.com.br');
+    $arquivo = criarArquivoLocalParaLead($lead, $dono);
+    $gerente = Usuario::create([
+        'nome' => 'Gerente',
+        'email' => 'download.gerente@koracrm.com.br',
+        'senha' => Hash::make('senha123456'),
+        'perfil' => 'gerente',
+        'ativo' => true,
+    ]);
+
+    $this->withToken($gerente->createToken('api-token')->plainTextToken)
+        ->get("/api/leads/{$lead->id}/arquivos/{$arquivo->id}")
+        ->assertOk();
+});
