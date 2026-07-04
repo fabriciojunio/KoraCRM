@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Lead;
 use App\Models\Tarefa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -87,13 +88,23 @@ class TarefaController extends Controller
             'lead_id.exists'    => 'Lead não encontrado.',
         ]);
 
+        // Impede vincular tarefa a lead que o usuário não pode acessar (IDOR).
+        $lead = Lead::findOrFail($dados['lead_id']);
+        $this->authorize('view', $lead);
+
+        // Vendedores só podem atribuir tarefas a si mesmos.
+        $responsavelId = $dados['responsavel_id'] ?? $request->user()->id;
+        if ($request->user()->isVendedor()) {
+            $responsavelId = $request->user()->id;
+        }
+
         $tarefa = Tarefa::create([
             'titulo'         => $dados['titulo'],
             'descricao'      => $dados['descricao'] ?? null,
             'prazo'          => $dados['prazo'] ?? null,
             'prioridade'     => $dados['prioridade'] ?? 'media',
             'lead_id'        => $dados['lead_id'],
-            'responsavel_id' => $dados['responsavel_id'] ?? $request->user()->id,
+            'responsavel_id' => $responsavelId,
             'concluida'      => false,
         ]);
 
