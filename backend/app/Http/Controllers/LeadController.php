@@ -8,15 +8,17 @@ use App\Application\Services\CriarLeadService;
 use App\Application\Services\MoverLeadService;
 use App\Application\Services\RegistrarHistoricoService;
 use App\Domain\Lead\LeadRepositoryInterface;
-use App\Http\Requests\CriarLeadRequest;
 use App\Http\Requests\AtualizarLeadRequest;
+use App\Http\Requests\CriarLeadRequest;
 use App\Http\Requests\MoverLeadRequest;
-use App\Http\Resources\LeadResource;
 use App\Http\Resources\LeadColecaoResource;
+use App\Http\Resources\LeadResource;
 use App\Models\Arquivo;
 use App\Models\Lead;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @OA\Tag(name="Leads", description="Gestão de leads")
@@ -36,9 +38,11 @@ class LeadController extends Controller
      *     tags={"Leads"},
      *     summary="Lista leads com filtros e paginação",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Parameter(name="estagio", in="query", schema={"type": "string"}),
      *     @OA\Parameter(name="busca", in="query", schema={"type": "string"}),
      *     @OA\Parameter(name="responsavel_id", in="query", schema={"type": "integer"}),
+     *
      *     @OA\Response(response=200, description="Lista de leads")
      * )
      */
@@ -67,6 +71,7 @@ class LeadController extends Controller
      *     tags={"Leads"},
      *     summary="Cria um novo lead",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Response(response=201, description="Lead criado com sucesso")
      * )
      */
@@ -88,7 +93,9 @@ class LeadController extends Controller
      *     tags={"Leads"},
      *     summary="Detalhes de um lead",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Parameter(name="id", in="path", required=true),
+     *
      *     @OA\Response(response=200, description="Dados do lead"),
      *     @OA\Response(response=404, description="Lead não encontrado")
      * )
@@ -112,6 +119,7 @@ class LeadController extends Controller
      *     tags={"Leads"},
      *     summary="Atualiza um lead",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Response(response=200, description="Lead atualizado")
      * )
      */
@@ -147,6 +155,7 @@ class LeadController extends Controller
      *     tags={"Leads"},
      *     summary="Exclui um lead (soft delete)",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Response(response=204, description="Lead excluído")
      * )
      */
@@ -171,6 +180,7 @@ class LeadController extends Controller
      *     tags={"Leads"},
      *     summary="Move lead para novo estágio no pipeline",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Response(response=200, description="Lead movido com sucesso"),
      *     @OA\Response(response=422, description="Transição inválida")
      * )
@@ -224,6 +234,7 @@ class LeadController extends Controller
      *     tags={"Leads"},
      *     summary="Leads agrupados por estágio para o Kanban",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Response(response=200, description="Leads agrupados por estágio")
      * )
      */
@@ -239,7 +250,7 @@ class LeadController extends Controller
         if ($request->user()->isVendedor()) {
             $query->where(function ($q) use ($request) {
                 $q->where('responsavel_id', $request->user()->id)
-                  ->orWhere('criado_por', $request->user()->id);
+                    ->orWhere('criado_por', $request->user()->id);
             });
         }
 
@@ -261,6 +272,7 @@ class LeadController extends Controller
      *     tags={"Leads"},
      *     summary="Anexa um arquivo ao lead",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Response(response=201, description="Arquivo enviado com sucesso"),
      *     @OA\Response(response=404, description="Lead não encontrado"),
      *     @OA\Response(response=422, description="Arquivo inválido")
@@ -280,8 +292,8 @@ class LeadController extends Controller
             'arquivo' => ['required', 'file', 'max:10240'],
         ], [
             'arquivo.required' => 'Selecione um arquivo para enviar.',
-            'arquivo.file'     => 'O conteúdo enviado não é um arquivo válido.',
-            'arquivo.max'      => 'O arquivo excede o tamanho máximo de 10MB.',
+            'arquivo.file' => 'O conteúdo enviado não é um arquivo válido.',
+            'arquivo.max' => 'O arquivo excede o tamanho máximo de 10MB.',
         ]);
 
         $upload = $request->file('arquivo');
@@ -296,13 +308,13 @@ class LeadController extends Controller
         $caminho = $upload->store("leads/{$modelo->id}", $disco);
 
         $arquivo = Arquivo::create([
-            'lead_id'       => $modelo->id,
+            'lead_id' => $modelo->id,
             'nome_original' => $upload->getClientOriginalName(),
-            'caminho'       => $caminho,
-            'disco'         => $disco,
-            'tamanho'       => $upload->getSize(),
-            'mime_type'     => $upload->getMimeType(),
-            'enviado_por'   => $request->user()->id,
+            'caminho' => $caminho,
+            'disco' => $disco,
+            'tamanho' => $upload->getSize(),
+            'mime_type' => $upload->getMimeType(),
+            'enviado_por' => $request->user()->id,
         ]);
 
         $this->historico->registrar(
@@ -313,13 +325,61 @@ class LeadController extends Controller
         );
 
         return response()->json([
-            'id'                => $arquivo->id,
-            'nome_original'     => $arquivo->nome_original,
-            'tamanho'           => $arquivo->tamanho,
+            'id' => $arquivo->id,
+            'nome_original' => $arquivo->nome_original,
+            'tamanho' => $arquivo->tamanho,
             'tamanho_formatado' => $arquivo->tamanhoFormatado(),
-            'mime_type'         => $arquivo->mime_type,
-            'url'               => $arquivo->urlAcesso(),
-            'enviado_em'        => $arquivo->created_at->toISOString(),
+            'mime_type' => $arquivo->mime_type,
+            'url' => $arquivo->urlAcesso(),
+            'enviado_em' => $arquivo->created_at->toISOString(),
         ], 201);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/leads/{id}/arquivos/{arquivo}",
+     *     tags={"Leads"},
+     *     summary="Baixa um arquivo anexo do lead (acesso autenticado e autorizado)",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Response(response=200, description="Conteúdo do arquivo"),
+     *     @OA\Response(response=403, description="Sem permissão"),
+     *     @OA\Response(response=404, description="Arquivo não encontrado")
+     * )
+     */
+    public function baixarArquivo(Request $request, int $lead, int $arquivo): Response
+    {
+        $modelo = $this->repositorio->buscarPorId($lead);
+
+        if (! $modelo) {
+            return response()->json(['mensagem' => 'Lead não encontrado.'], 404);
+        }
+
+        // Só quem pode ver o lead pode baixar seus anexos.
+        $this->authorize('view', $modelo);
+
+        $anexo = Arquivo::where('id', $arquivo)
+            ->where('lead_id', $modelo->id)
+            ->first();
+
+        if (! $anexo) {
+            return response()->json(['mensagem' => 'Arquivo não encontrado.'], 404);
+        }
+
+        // No S3 a entrega usa URL assinada temporária; em disco local o
+        // conteúdo é transmitido pela própria API, sempre como anexo.
+        if ($anexo->disco === 's3') {
+            return redirect()->away($anexo->urlAcesso());
+        }
+
+        $disco = Storage::disk('local');
+
+        if (! $disco->exists($anexo->caminho)) {
+            return response()->json(['mensagem' => 'Arquivo não encontrado.'], 404);
+        }
+
+        return $disco->download($anexo->caminho, $anexo->nome_original, [
+            'Content-Type' => $anexo->mime_type,
+        ]);
     }
 }
