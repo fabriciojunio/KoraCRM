@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Lead;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +16,7 @@ class CriarLeadRequest extends FormRequest
     {
         return [
             'nome' => ['required', 'string', 'max:150'],
-            'email' => ['nullable', 'email', 'max:150'],
+            'email' => ['nullable', 'email:filter', 'max:150'],
             'telefone' => ['nullable', 'string', 'max:20'],
             'empresa' => ['nullable', 'string', 'max:150'],
             'cargo' => ['nullable', 'string', 'max:100'],
