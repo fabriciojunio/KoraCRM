@@ -8,11 +8,11 @@ uses(RefreshDatabase::class);
 
 test('respostas da API incluem cabeçalhos de segurança', function () {
     Usuario::create([
-        'nome'   => 'Headers Teste',
-        'email'  => 'headers@koracrm.com.br',
-        'senha'  => Hash::make('senha123456'),
+        'nome' => 'Headers Teste',
+        'email' => 'headers@koracrm.com.br',
+        'senha' => Hash::make('senha123456'),
         'perfil' => 'vendedor',
-        'ativo'  => true,
+        'ativo' => true,
     ]);
 
     $resposta = $this->postJson('/api/auth/login', [
