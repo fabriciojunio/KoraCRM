@@ -49,8 +49,8 @@ class SecurityHeaders
         // A documentação Swagger renderiza HTML com scripts/estilos próprios.
         if ($request->is('api/documentation', 'api/oauth2-callback', 'docs*')) {
             return "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
-                . "script-src 'self' 'unsafe-inline'; font-src 'self' data:; "
-                . "frame-ancestors 'none'; base-uri 'self'";
+                ."script-src 'self' 'unsafe-inline'; font-src 'self' data:; "
+                ."frame-ancestors 'none'; base-uri 'self'";
         }
 
         // Respostas JSON puras: bloqueio máximo.
