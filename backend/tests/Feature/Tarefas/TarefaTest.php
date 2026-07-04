@@ -42,6 +42,53 @@ test('cria tarefa vinculada a lead', function () {
              ->assertJsonFragment(['titulo' => 'Ligar para o cliente']);
 });
 
+test('vendedor não cria tarefa em lead de outro usuário', function () {
+    [$usuario, $lead, $token] = usuarioETarefaSetup();
+
+    $outro = Usuario::create([
+        'nome'   => 'Outro Vendedor',
+        'email'  => 'outro@koracrm.com.br',
+        'senha'  => Hash::make('senha123456'),
+        'perfil' => 'vendedor',
+        'ativo'  => true,
+    ]);
+
+    $leadAlheio = Lead::create([
+        'nome'       => 'Lead de Outro',
+        'estagio'    => 'novo',
+        'criado_por' => $outro->id,
+        'responsavel_id' => $outro->id,
+    ]);
+
+    $resposta = $this->withToken($token)->postJson('/api/tarefas', [
+        'titulo'  => 'Tentativa indevida',
+        'lead_id' => $leadAlheio->id,
+    ]);
+
+    $resposta->assertStatus(403);
+});
+
+test('vendedor não atribui tarefa a outro usuário', function () {
+    [$usuario, $lead, $token] = usuarioETarefaSetup();
+
+    $outro = Usuario::create([
+        'nome'   => 'Colega',
+        'email'  => 'colega@koracrm.com.br',
+        'senha'  => Hash::make('senha123456'),
+        'perfil' => 'vendedor',
+        'ativo'  => true,
+    ]);
+
+    $resposta = $this->withToken($token)->postJson('/api/tarefas', [
+        'titulo'         => 'Tarefa própria',
+        'lead_id'        => $lead->id,
+        'responsavel_id' => $outro->id,
+    ]);
+
+    $resposta->assertStatus(201);
+    expect(Tarefa::latest('id')->first()->responsavel_id)->toBe($usuario->id);
+});
+
 test('criar tarefa requer titulo', function () {
     [$usuario, $lead, $token] = usuarioETarefaSetup();
 
