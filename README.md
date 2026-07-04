@@ -114,14 +114,26 @@ docker-compose exec frontend npm install
 
 ## Credenciais de acesso
 
-Criadas automaticamente pelo seeder (`php artisan migrate --seed`):
+Os usuários são criados pelo seeder (`php artisan migrate --seed`). As **senhas
+não são fixas**: por padrão o seeder gera uma senha forte aleatória por perfil e
+a exibe uma única vez no console ao rodar. Para definir senhas conhecidas em
+ambiente de desenvolvimento, informe as variáveis no `.env` antes do seed:
 
-| Perfil | E-mail | Senha |
-|--------|--------|-------|
-| Admin | `admin@koracrm.com.br` | `admin123456` |
-| Gerente | `gerente@koracrm.com.br` | `gerente123456` |
-| Vendedor | `carlos@koracrm.com.br` | `vendedor123456` |
-| Vendedor | `ana@koracrm.com.br` | `vendedor123456` |
+```env
+SEED_ADMIN_PASSWORD=...
+SEED_GERENTE_PASSWORD=...
+SEED_VENDEDOR_PASSWORD=...
+```
+
+| Perfil | E-mail |
+|--------|--------|
+| Admin | `admin@koracrm.com.br` |
+| Gerente | `gerente@koracrm.com.br` |
+| Vendedor | `carlos@koracrm.com.br` |
+| Vendedor | `ana@koracrm.com.br` |
+
+> Nunca use senhas de exemplo em produção. Rode o seed apenas em ambientes
+> controlados e rotacione as senhas após o primeiro acesso.
 
 ---
 
