@@ -16,7 +16,7 @@ class AtualizarLeadRequest extends FormRequest
     {
         return [
             'nome' => ['sometimes', 'string', 'max:150'],
-            'email' => ['nullable', 'email', 'max:150'],
+            'email' => ['nullable', 'email:filter', 'max:150'],
             'telefone' => ['nullable', 'string', 'max:20'],
             'empresa' => ['nullable', 'string', 'max:150'],
             'cargo' => ['nullable', 'string', 'max:100'],

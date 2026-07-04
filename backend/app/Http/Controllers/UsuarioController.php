@@ -17,6 +17,7 @@ class UsuarioController extends Controller
     /**
      * @OA\Get(path="/api/usuarios", tags={"Usuários"}, security={{"sanctum":{}}},
      *     summary="Lista todos os usuários",
+     *
      *     @OA\Response(response=200, description="Lista de usuários")
      * )
      */
@@ -32,7 +33,9 @@ class UsuarioController extends Controller
     /**
      * @OA\Get(path="/api/usuarios/{id}", tags={"Usuários"}, security={{"sanctum":{}}},
      *     summary="Detalhes de um usuário",
+     *
      *     @OA\Parameter(name="id", in="path", required=true),
+     *
      *     @OA\Response(response=200, description="Dados do usuário"),
      *     @OA\Response(response=404, description="Usuário não encontrado")
      * )
@@ -52,24 +55,25 @@ class UsuarioController extends Controller
     /**
      * @OA\Post(path="/api/usuarios", tags={"Usuários"}, security={{"sanctum":{}}},
      *     summary="Cria novo usuário",
+     *
      *     @OA\Response(response=201, description="Usuário criado")
      * )
      */
     public function store(Request $request): JsonResponse
     {
         $dados = $request->validate([
-            'nome'   => ['required', 'string', 'max:100'],
-            'email'  => ['required', 'email', 'max:150', 'unique:usuarios,email'],
-            'senha'  => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
+            'nome' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email:filter', 'max:150', 'unique:usuarios,email'],
+            'senha' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
             'perfil' => ['required', Rule::in(['admin', 'gerente', 'vendedor'])],
         ], [
-            'email.unique'    => 'Este e-mail já está cadastrado.',
+            'email.unique' => 'Este e-mail já está cadastrado.',
             'senha.confirmed' => 'A confirmação de senha não confere.',
-            'perfil.in'       => 'Perfil inválido.',
+            'perfil.in' => 'Perfil inválido.',
         ]);
 
         $usuario = Usuario::create([
-            'nome'  => $dados['nome'],
+            'nome' => $dados['nome'],
             'email' => $dados['email'],
             'senha' => Hash::make($dados['senha']),
             'perfil' => $dados['perfil'],
@@ -82,7 +86,9 @@ class UsuarioController extends Controller
     /**
      * @OA\Put(path="/api/usuarios/{id}", tags={"Usuários"}, security={{"sanctum":{}}},
      *     summary="Atualiza usuário",
+     *
      *     @OA\Parameter(name="id", in="path", required=true),
+     *
      *     @OA\Response(response=200, description="Usuário atualizado")
      * )
      */
@@ -95,11 +101,11 @@ class UsuarioController extends Controller
         }
 
         $dados = $request->validate([
-            'nome'   => ['sometimes', 'string', 'max:100'],
-            'email'  => ['sometimes', 'email', 'max:150', Rule::unique('usuarios')->ignore($id)],
+            'nome' => ['sometimes', 'string', 'max:100'],
+            'email' => ['sometimes', 'email:filter', 'max:150', Rule::unique('usuarios')->ignore($id)],
             'perfil' => ['sometimes', Rule::in(['admin', 'gerente', 'vendedor'])],
-            'ativo'  => ['sometimes', 'boolean'],
-            'senha'  => ['nullable', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
+            'ativo' => ['sometimes', 'boolean'],
+            'senha' => ['nullable', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
         ]);
 
         if (! empty($dados['senha'])) {
@@ -116,6 +122,7 @@ class UsuarioController extends Controller
     /**
      * @OA\Delete(path="/api/usuarios/{id}", tags={"Usuários"}, security={{"sanctum":{}}},
      *     summary="Desativa usuário",
+     *
      *     @OA\Response(response=200, description="Usuário desativado")
      * )
      */
