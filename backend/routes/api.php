@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\LeadController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\TarefaController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +27,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::patch('leads/{lead}/estagio', [LeadController::class, 'moverEstagio']);
     Route::get('leads/{lead}/historico', [LeadController::class, 'historico']);
     Route::post('leads/{lead}/arquivos', [LeadController::class, 'uploadArquivo']);
+    Route::get('leads/{lead}/arquivos/{arquivo}', [LeadController::class, 'baixarArquivo'])
+        ->name('leads.arquivos.download');
 
     Route::get('pipeline', [LeadController::class, 'pipeline']);
 

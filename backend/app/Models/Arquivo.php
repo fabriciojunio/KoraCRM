@@ -53,7 +53,11 @@ class Arquivo extends Model
             return Storage::disk('s3')->temporaryUrl($this->caminho, now()->addHour());
         }
 
-        return Storage::disk('local')->url($this->caminho);
+        // Disco local não é público: entrega via rota autenticada da API.
+        return route('leads.arquivos.download', [
+            'lead' => $this->lead_id,
+            'arquivo' => $this->id,
+        ]);
     }
 
     public function tamanhoFormatado(): string
@@ -63,9 +67,9 @@ class Arquivo extends Model
         if ($bytes < 1024) {
             return "{$bytes} B";
         } elseif ($bytes < 1024 * 1024) {
-            return round($bytes / 1024, 1) . ' KB';
+            return round($bytes / 1024, 1).' KB';
         } else {
-            return round($bytes / (1024 * 1024), 1) . ' MB';
+            return round($bytes / (1024 * 1024), 1).' MB';
         }
     }
 }
