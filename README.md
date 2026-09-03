@@ -8,6 +8,10 @@
 
 CRM fullstack para gestão de leads, pipeline de vendas e relacionamento com clientes.
 
+**No ar:** [koracrm-frontend.vercel.app](https://koracrm-frontend.vercel.app) — só a
+interface. O Laravel não está publicado, então o que dá para ver é a navegação e as
+telas, não os dados.
+
 ---
 
 ## Sobre
