@@ -9,7 +9,10 @@ class LeadPolicy
 {
     public function view(Usuario $usuario, Lead $lead): bool
     {
-        if ($usuario->isGerente()) return true;
+        if ($usuario->isGerente()) {
+            return true;
+        }
+
         return $lead->responsavel_id === $usuario->id || $lead->criado_por === $usuario->id;
     }
 
@@ -20,7 +23,10 @@ class LeadPolicy
 
     public function update(Usuario $usuario, Lead $lead): bool
     {
-        if ($usuario->isGerente()) return true;
+        if ($usuario->isGerente()) {
+            return true;
+        }
+
         return $lead->responsavel_id === $usuario->id || $lead->criado_por === $usuario->id;
     }
 
@@ -29,9 +35,17 @@ class LeadPolicy
         return $usuario->isGerente();
     }
 
+    public function anonimizar(Usuario $usuario, Lead $lead): bool
+    {
+        return $usuario->isGerente();
+    }
+
     public function upload(Usuario $usuario, Lead $lead): bool
     {
-        if ($usuario->isGerente()) return true;
+        if ($usuario->isGerente()) {
+            return true;
+        }
+
         return $lead->responsavel_id === $usuario->id || $lead->criado_por === $usuario->id;
     }
 }

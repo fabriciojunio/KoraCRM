@@ -19,14 +19,18 @@ class AuthController extends Controller
      *     path="/api/auth/login",
      *     tags={"Autenticação"},
      *     summary="Login com email e senha",
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"email","senha"},
+     *
      *             @OA\Property(property="email", type="string", format="email"),
      *             @OA\Property(property="senha", type="string", minLength=8)
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Login realizado com sucesso"),
      *     @OA\Response(response=422, description="Credenciais inválidas")
      * )
@@ -34,8 +38,8 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $usuario = Usuario::where('email', $request->email)
-                          ->where('ativo', true)
-                          ->first();
+            ->where('ativo', true)
+            ->first();
 
         if (! $usuario || ! Hash::check($request->senha, $usuario->senha)) {
             throw ValidationException::withMessages([
@@ -57,9 +61,9 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token->plainTextToken,
             'usuario' => [
-                'id'     => $usuario->id,
-                'nome'   => $usuario->nome,
-                'email'  => $usuario->email,
+                'id' => $usuario->id,
+                'nome' => $usuario->nome,
+                'email' => $usuario->email,
                 'perfil' => $usuario->perfil,
                 'avatar' => $usuario->avatar,
             ],
@@ -73,6 +77,7 @@ class AuthController extends Controller
      *     tags={"Autenticação"},
      *     summary="Logout — invalida o token atual",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Response(response=200, description="Logout realizado com sucesso")
      * )
      */
@@ -89,6 +94,7 @@ class AuthController extends Controller
      *     tags={"Autenticação"},
      *     summary="Dados do usuário autenticado",
      *     security={{"sanctum": {}}},
+     *
      *     @OA\Response(response=200, description="Dados do usuário")
      * )
      */
@@ -97,9 +103,9 @@ class AuthController extends Controller
         $usuario = $request->user();
 
         return response()->json([
-            'id'     => $usuario->id,
-            'nome'   => $usuario->nome,
-            'email'  => $usuario->email,
+            'id' => $usuario->id,
+            'nome' => $usuario->nome,
+            'email' => $usuario->email,
             'perfil' => $usuario->perfil,
             'avatar' => $usuario->avatar,
         ]);

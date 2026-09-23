@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('empresa', 150)->nullable();
             $table->string('cargo', 100)->nullable();
             $table->enum('estagio', ['novo', 'contato', 'proposta', 'ganho', 'perdido'])
-                  ->default('novo');
+                ->default('novo');
             $table->decimal('valor_estimado', 15, 2)->nullable();
             $table->string('origem', 50)->nullable()
-                  ->comment('site, indicacao, linkedin, evento, outros');
+                ->comment('site, indicacao, linkedin, evento, outros');
             $table->text('observacoes')->nullable();
             $table->json('tags')->nullable();
             $table->unsignedBigInteger('responsavel_id')->nullable();
@@ -29,13 +29,13 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('responsavel_id')
-                  ->references('id')
-                  ->on('usuarios')
-                  ->nullOnDelete();
+                ->references('id')
+                ->on('usuarios')
+                ->nullOnDelete();
 
             $table->foreign('criado_por')
-                  ->references('id')
-                  ->on('usuarios');
+                ->references('id')
+                ->on('usuarios');
 
             $table->index('estagio');
             $table->index(['responsavel_id', 'estagio']);

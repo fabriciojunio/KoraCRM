@@ -3,7 +3,7 @@
 use App\Models\Tarefa;
 
 test('tarefa não atrasada quando não tem prazo', function () {
-    $tarefa = new Tarefa();
+    $tarefa = new Tarefa;
     $tarefa->concluida = false;
     $tarefa->prazo = null;
 
@@ -11,7 +11,7 @@ test('tarefa não atrasada quando não tem prazo', function () {
 });
 
 test('tarefa não atrasada quando já está concluída', function () {
-    $tarefa = new Tarefa();
+    $tarefa = new Tarefa;
     $tarefa->concluida = true;
     $tarefa->prazo = now()->subDay();
 
@@ -19,7 +19,7 @@ test('tarefa não atrasada quando já está concluída', function () {
 });
 
 test('tarefa atrasada quando prazo passou e não está concluída', function () {
-    $tarefa = new Tarefa();
+    $tarefa = new Tarefa;
     $tarefa->concluida = false;
     $tarefa->prazo = now()->subDay();
 
@@ -27,7 +27,7 @@ test('tarefa atrasada quando prazo passou e não está concluída', function () 
 });
 
 test('tarefa não atrasada quando prazo é futuro', function () {
-    $tarefa = new Tarefa();
+    $tarefa = new Tarefa;
     $tarefa->concluida = false;
     $tarefa->prazo = now()->addDay();
 

@@ -16,11 +16,11 @@ class UsuarioFactory extends Factory
     public function definition(): array
     {
         return [
-            'nome'   => $this->faker->name(),
-            'email'  => $this->faker->unique()->safeEmail(),
-            'senha'  => Hash::make('senha123456'),
+            'nome' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'senha' => Hash::make('senha123456'),
             'perfil' => 'vendedor',
-            'ativo'  => true,
+            'ativo' => true,
         ];
     }
 

@@ -34,6 +34,7 @@ class Lead extends Model
         'tags' => 'array',
         'valor_estimado' => 'decimal:2',
         'data_fechamento' => 'datetime',
+        'anonimizado_em' => 'datetime',
         'deleted_at' => 'datetime',
     ];
 
@@ -59,7 +60,7 @@ class Lead extends Model
     public function historico(): HasMany
     {
         return $this->hasMany(HistoricoLead::class, 'lead_id')
-                    ->orderByDesc('created_at');
+            ->orderByDesc('created_at');
     }
 
     public function arquivos(): HasMany

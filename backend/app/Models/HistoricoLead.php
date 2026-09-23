@@ -7,6 +7,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HistoricoLead extends Model
 {
+    public const TIPOS = [
+        'criacao',
+        'atualizacao',
+        'mudanca_estagio',
+        'comentario',
+        'tarefa_criada',
+        'arquivo_enviado',
+        'anonimizacao',
+    ];
+
     public $timestamps = false;
 
     protected $table = 'historico_leads';

@@ -3,20 +3,24 @@
 namespace App\Application\Services;
 
 use App\Domain\Lead\LeadRepositoryInterface;
+use App\Models\HistoricoLead;
 use App\Models\Lead;
 use App\Models\Tarefa;
-use App\Models\HistoricoLead;
 use Illuminate\Support\Facades\Cache;
 
 class DashboardService
 {
+    public const CHAVE_METRICAS = 'painel.metricas';
+
+    public const SEGUNDOS_EM_CACHE = 300;
+
     public function __construct(
         private readonly LeadRepositoryInterface $repositorio,
     ) {}
 
     public function metricas(): array
     {
-        return Cache::remember('dashboard.metricas', 300, function () {
+        return Cache::remember(self::CHAVE_METRICAS, self::SEGUNDOS_EM_CACHE, function () {
             $contagemPorEstagio = $this->repositorio->contagemPorEstagio();
             $valorPorEstagio = $this->repositorio->valorTotalPorEstagio();
 

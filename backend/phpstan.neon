@@ -1,16 +1,8 @@
 includes:
-    - vendor/larastan/larastan/extension.neon
+    - vendor/nunomaduro/larastan/extension.neon
 
 parameters:
     paths:
         - app/
 
     level: 5
-
-    ignoreErrors:
-        - '#Unsafe usage of new static#'
-
-    excludePaths:
-        - ./*/*/FileToBeExcluded.php
-
-    checkMissingIterableValueType: false

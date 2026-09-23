@@ -11,8 +11,8 @@ uses(RefreshDatabase::class);
 function usuarioAutenticado(string $perfil = 'vendedor'): array
 {
     $usuario = Usuario::create([
-        'nome' => ucfirst($perfil) . ' Teste',
-        'email' => $perfil . '@koracrm.com.br',
+        'nome' => ucfirst($perfil).' Teste',
+        'email' => $perfil.'@koracrm.com.br',
         'senha' => Hash::make('senha123456'),
         'perfil' => $perfil,
         'ativo' => true,
@@ -41,11 +41,11 @@ test('cria lead com dados válidos', function () {
     [$usuario, $token] = usuarioAutenticado();
 
     $resposta = $this->withToken($token)
-                     ->postJson('/api/leads', dadosLead());
+        ->postJson('/api/leads', dadosLead());
 
     $resposta->assertStatus(201)
-             ->assertJsonFragment(['nome' => 'Empresa ABC Ltda'])
-             ->assertJsonFragment(['estagio' => 'novo']);
+        ->assertJsonFragment(['nome' => 'Empresa ABC Ltda'])
+        ->assertJsonFragment(['estagio' => 'novo']);
 
     $this->assertDatabaseHas('leads', ['nome' => 'Empresa ABC Ltda']);
 });
@@ -54,7 +54,7 @@ test('novo lead sempre inicia no estágio novo', function () {
     [$usuario, $token] = usuarioAutenticado();
 
     $resposta = $this->withToken($token)
-                     ->postJson('/api/leads', dadosLead());
+        ->postJson('/api/leads', dadosLead());
 
     $resposta->assertJsonFragment(['estagio' => 'novo']);
 });
@@ -63,10 +63,10 @@ test('criar lead requer nome', function () {
     [$usuario, $token] = usuarioAutenticado();
 
     $resposta = $this->withToken($token)
-                     ->postJson('/api/leads', ['email' => 'sem@nome.com']);
+        ->postJson('/api/leads', ['email' => 'sem@nome.com']);
 
     $resposta->assertStatus(422)
-             ->assertJsonValidationErrors(['nome']);
+        ->assertJsonValidationErrors(['nome']);
 });
 
 test('criar lead requer autenticação', function () {
@@ -79,20 +79,20 @@ test('criar lead valida formato de email', function () {
     [$usuario, $token] = usuarioAutenticado();
 
     $resposta = $this->withToken($token)
-                     ->postJson('/api/leads', dadosLead(['email' => 'invalido']));
+        ->postJson('/api/leads', dadosLead(['email' => 'invalido']));
 
     $resposta->assertStatus(422)
-             ->assertJsonValidationErrors(['email']);
+        ->assertJsonValidationErrors(['email']);
 });
 
 test('criar lead valida origem', function () {
     [$usuario, $token] = usuarioAutenticado();
 
     $resposta = $this->withToken($token)
-                     ->postJson('/api/leads', dadosLead(['origem' => 'origem_fake']));
+        ->postJson('/api/leads', dadosLead(['origem' => 'origem_fake']));
 
     $resposta->assertStatus(422)
-             ->assertJsonValidationErrors(['origem']);
+        ->assertJsonValidationErrors(['origem']);
 });
 
 // ─── LISTAR LEADS ─────────────────────────────────────────────────────────────
@@ -103,10 +103,10 @@ test('lista leads paginados', function () {
     Lead::factory()->count(5)->create(['criado_por' => $usuario->id]);
 
     $resposta = $this->withToken($token)
-                     ->getJson('/api/leads');
+        ->getJson('/api/leads');
 
     $resposta->assertStatus(200)
-             ->assertJsonCount(5, 'data');
+        ->assertJsonCount(5, 'data');
 });
 
 test('filtra leads por estágio', function () {
@@ -122,10 +122,10 @@ test('filtra leads por estágio', function () {
     ]);
 
     $resposta = $this->withToken($token)
-                     ->getJson('/api/leads?estagio=contato');
+        ->getJson('/api/leads?estagio=contato');
 
     $resposta->assertStatus(200)
-             ->assertJsonCount(3, 'data');
+        ->assertJsonCount(3, 'data');
 });
 
 test('busca leads por nome', function () {
@@ -141,10 +141,10 @@ test('busca leads por nome', function () {
     ]);
 
     $resposta = $this->withToken($token)
-                     ->getJson('/api/leads?busca=TechCorp');
+        ->getJson('/api/leads?busca=TechCorp');
 
     $resposta->assertStatus(200)
-             ->assertJsonCount(1, 'data');
+        ->assertJsonCount(1, 'data');
 });
 
 // ─── VER LEAD ─────────────────────────────────────────────────────────────────
@@ -155,17 +155,17 @@ test('retorna detalhes de lead existente', function () {
     $lead = Lead::factory()->create(['criado_por' => $usuario->id]);
 
     $resposta = $this->withToken($token)
-                     ->getJson("/api/leads/{$lead->id}");
+        ->getJson("/api/leads/{$lead->id}");
 
     $resposta->assertStatus(200)
-             ->assertJsonFragment(['id' => $lead->id]);
+        ->assertJsonFragment(['id' => $lead->id]);
 });
 
 test('retorna 404 para lead inexistente', function () {
     [$usuario, $token] = usuarioAutenticado();
 
     $resposta = $this->withToken($token)
-                     ->getJson('/api/leads/99999');
+        ->getJson('/api/leads/99999');
 
     $resposta->assertStatus(404);
 });
@@ -178,13 +178,13 @@ test('atualiza dados do lead', function () {
     $lead = Lead::factory()->create(['criado_por' => $usuario->id]);
 
     $resposta = $this->withToken($token)
-                     ->putJson("/api/leads/{$lead->id}", [
-                         'nome' => 'Nome Atualizado',
-                         'valor_estimado' => 25000,
-                     ]);
+        ->putJson("/api/leads/{$lead->id}", [
+            'nome' => 'Nome Atualizado',
+            'valor_estimado' => 25000,
+        ]);
 
     $resposta->assertStatus(200)
-             ->assertJsonFragment(['nome' => 'Nome Atualizado']);
+        ->assertJsonFragment(['nome' => 'Nome Atualizado']);
 });
 
 // ─── EXCLUIR LEAD ─────────────────────────────────────────────────────────────
@@ -195,7 +195,7 @@ test('exclui lead com soft delete', function () {
     $lead = Lead::factory()->create(['criado_por' => $usuario->id]);
 
     $resposta = $this->withToken($token)
-                     ->deleteJson("/api/leads/{$lead->id}");
+        ->deleteJson("/api/leads/{$lead->id}");
 
     $resposta->assertStatus(204);
 
@@ -213,12 +213,12 @@ test('move lead para próximo estágio', function () {
     ]);
 
     $resposta = $this->withToken($token)
-                     ->patchJson("/api/leads/{$lead->id}/estagio", [
-                         'estagio' => 'contato',
-                     ]);
+        ->patchJson("/api/leads/{$lead->id}/estagio", [
+            'estagio' => 'contato',
+        ]);
 
     $resposta->assertStatus(200)
-             ->assertJsonFragment(['estagio' => 'contato']);
+        ->assertJsonFragment(['estagio' => 'contato']);
 });
 
 test('não move lead já fechado', function () {
@@ -230,9 +230,9 @@ test('não move lead já fechado', function () {
     ]);
 
     $resposta = $this->withToken($token)
-                     ->patchJson("/api/leads/{$lead->id}/estagio", [
-                         'estagio' => 'contato',
-                     ]);
+        ->patchJson("/api/leads/{$lead->id}/estagio", [
+            'estagio' => 'contato',
+        ]);
 
     $resposta->assertStatus(409);
 });
@@ -246,9 +246,9 @@ test('não move para estágio inválido', function () {
     ]);
 
     $resposta = $this->withToken($token)
-                     ->patchJson("/api/leads/{$lead->id}/estagio", [
-                         'estagio' => 'fake',
-                     ]);
+        ->patchJson("/api/leads/{$lead->id}/estagio", [
+            'estagio' => 'fake',
+        ]);
 
     $resposta->assertStatus(422);
 });

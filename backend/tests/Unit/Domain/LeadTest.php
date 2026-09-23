@@ -3,42 +3,42 @@
 use App\Models\Lead;
 
 test('lead recém criado não está fechado', function () {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->estagio = 'novo';
 
     expect($lead->estaFechado())->toBeFalse();
 });
 
 test('lead no estágio ganho está fechado', function () {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->estagio = 'ganho';
 
     expect($lead->estaFechado())->toBeTrue();
 });
 
 test('lead no estágio perdido está fechado', function () {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->estagio = 'perdido';
 
     expect($lead->estaFechado())->toBeTrue();
 });
 
 test('lead no estágio contato não está fechado', function () {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->estagio = 'contato';
 
     expect($lead->estaFechado())->toBeFalse();
 });
 
 test('lead no estágio proposta não está fechado', function () {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->estagio = 'proposta';
 
     expect($lead->estaFechado())->toBeFalse();
 });
 
 test('lead fechado não pode mover para nenhum estágio', function () {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->estagio = 'ganho';
 
     foreach (Lead::ESTAGIOS as $estagio) {
@@ -47,14 +47,14 @@ test('lead fechado não pode mover para nenhum estágio', function () {
 });
 
 test('lead aberto não pode mover para estágio inválido', function () {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->estagio = 'novo';
 
     expect($lead->podeMovarPara('estagio_fake'))->toBeFalse();
 });
 
 test('lead aberto pode mover para qualquer estágio válido', function () {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->estagio = 'novo';
 
     foreach (Lead::ESTAGIOS as $estagio) {

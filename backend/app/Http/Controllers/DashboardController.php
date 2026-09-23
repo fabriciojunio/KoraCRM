@@ -17,6 +17,7 @@ class DashboardController extends Controller
     /**
      * @OA\Get(path="/api/dashboard/metricas", tags={"Dashboard"}, security={{"sanctum":{}}},
      *     summary="KPIs e métricas gerais do CRM",
+     *
      *     @OA\Response(response=200, description="Métricas do dashboard")
      * )
      */
@@ -28,6 +29,7 @@ class DashboardController extends Controller
     /**
      * @OA\Get(path="/api/dashboard/atividades", tags={"Dashboard"}, security={{"sanctum":{}}},
      *     summary="Atividades recentes do sistema",
+     *
      *     @OA\Response(response=200, description="Lista de atividades recentes")
      * )
      */
@@ -39,6 +41,7 @@ class DashboardController extends Controller
     /**
      * @OA\Get(path="/api/dashboard/funil", tags={"Dashboard"}, security={{"sanctum":{}}},
      *     summary="Dados do funil de conversão para gráfico",
+     *
      *     @OA\Response(response=200, description="Dados do funil")
      * )
      */

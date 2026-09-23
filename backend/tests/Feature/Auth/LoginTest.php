@@ -27,11 +27,11 @@ test('usuário realiza login com credenciais válidas', function () {
     ]);
 
     $resposta->assertStatus(200)
-             ->assertJsonStructure([
-                 'token',
-                 'usuario' => ['id', 'nome', 'email', 'perfil'],
-                 'expira_em',
-             ]);
+        ->assertJsonStructure([
+            'token',
+            'usuario' => ['id', 'nome', 'email', 'perfil'],
+            'expira_em',
+        ]);
 });
 
 test('login falha com senha incorreta', function () {
@@ -43,7 +43,7 @@ test('login falha com senha incorreta', function () {
     ]);
 
     $resposta->assertStatus(422)
-             ->assertJsonValidationErrors(['email']);
+        ->assertJsonValidationErrors(['email']);
 });
 
 test('login falha com email inexistente', function () {
@@ -73,7 +73,7 @@ test('login valida formato do email', function () {
     ]);
 
     $resposta->assertStatus(422)
-             ->assertJsonValidationErrors(['email']);
+        ->assertJsonValidationErrors(['email']);
 });
 
 test('login requer senha mínima de 8 caracteres', function () {
@@ -83,7 +83,7 @@ test('login requer senha mínima de 8 caracteres', function () {
     ]);
 
     $resposta->assertStatus(422)
-             ->assertJsonValidationErrors(['senha']);
+        ->assertJsonValidationErrors(['senha']);
 });
 
 test('usuário realiza logout com sucesso', function () {
@@ -91,10 +91,10 @@ test('usuário realiza logout com sucesso', function () {
     $token = $usuario->createToken('api-token')->plainTextToken;
 
     $resposta = $this->withToken($token)
-                     ->postJson('/api/auth/logout');
+        ->postJson('/api/auth/logout');
 
     $resposta->assertStatus(200)
-             ->assertJsonFragment(['mensagem' => 'Logout realizado com sucesso.']);
+        ->assertJsonFragment(['mensagem' => 'Logout realizado com sucesso.']);
 });
 
 test('rota de logout requer autenticação', function () {
@@ -108,10 +108,10 @@ test('perfil retorna dados do usuário autenticado', function () {
     $token = $usuario->createToken('api-token')->plainTextToken;
 
     $resposta = $this->withToken($token)
-                     ->getJson('/api/auth/perfil');
+        ->getJson('/api/auth/perfil');
 
     $resposta->assertStatus(200)
-             ->assertJsonFragment(['email' => 'teste@koracrm.com.br']);
+        ->assertJsonFragment(['email' => 'teste@koracrm.com.br']);
 });
 
 test('senha não é retornada no perfil', function () {
@@ -119,7 +119,7 @@ test('senha não é retornada no perfil', function () {
     $token = $usuario->createToken('api-token')->plainTextToken;
 
     $resposta = $this->withToken($token)
-                     ->getJson('/api/auth/perfil');
+        ->getJson('/api/auth/perfil');
 
     $resposta->assertJsonMissing(['senha']);
 });
