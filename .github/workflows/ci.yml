@@ -40,10 +40,10 @@ jobs:
       - name: Análise estática
         run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
 
-      # O piso é 70%, e o número de verdade sai no log deste passo. Subir o
-      # piso é decisão de quem for olhar o relatório, não chute daqui.
+      # A cobertura real é 90%. O piso fica em 85 para dar folga a uma
+      # refatoração honesta e ainda barrar código novo entrando sem teste.
       - name: Testar com cobertura
-        run: vendor/bin/pest --coverage --min=70
+        run: vendor/bin/pest --coverage --min=85
 
   backend-mysql:
     name: Backend no MySQL 8
