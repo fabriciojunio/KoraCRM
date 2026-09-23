@@ -10,7 +10,18 @@ não cabe em camada gratuita do mesmo jeito que um site estático. Quem abre o
 link vê o sistema funcionando com dados de exemplo.
 
 A publicação é automática: `publicar-frontend.yml` dispara quando o CI fecha
-em verde na `main`.
+em verde na `main`. Ela depende do segredo `VERCEL_TOKEN` no repositório e,
+sem ele, o fluxo termina em verde com um aviso em vez de falhar:
+
+```bash
+gh secret set VERCEL_TOKEN
+```
+
+Sem o segredo, publicar é na mão, de dentro de `frontend/`:
+
+```bash
+npx vercel deploy --prod
+```
 
 ## Subir o sistema inteiro
 
