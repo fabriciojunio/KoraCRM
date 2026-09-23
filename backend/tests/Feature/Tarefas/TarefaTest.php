@@ -89,7 +89,7 @@ test('vendedor não atribui tarefa a outro usuário', function () {
     expect(Tarefa::latest('id')->first()->responsavel_id)->toBe($usuario->id);
 });
 
-test('criar tarefa requer titulo', function () {
+test('criar tarefa requer título', function () {
     [$usuario, $lead, $token] = usuarioETarefaSetup();
 
     $resposta = $this->withToken($token)->postJson('/api/tarefas', [
@@ -117,7 +117,7 @@ test('conclui tarefa com sucesso', function () {
         ->assertJsonFragment(['concluida' => true]);
 });
 
-test('nao pode concluir tarefa ja concluida', function () {
+test('não pode concluir tarefa já concluída', function () {
     [$usuario, $lead, $token] = usuarioETarefaSetup();
 
     $tarefa = Tarefa::create([
