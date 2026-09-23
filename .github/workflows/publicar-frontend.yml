@@ -1,0 +1,58 @@
+name: Publicar frontend
+
+# Publica a interface na Vercel depois que o CI fecha em verde na principal.
+# A API não é publicada aqui: o endereço no ar mostra só o frontend, e o
+# README diz isso com todas as letras.
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  publicar:
+    name: Vercel
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    permissions:
+      deployments: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abrir o registro de publicação
+        uses: chrnorm/deployment-action@v2
+        id: publicacao
+        with:
+          token: ${{ github.token }}
+          environment: production
+          initial-status: in_progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Publicar
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: team_SEbBZxQ9aO2or7wcwtT2qt41
+          VERCEL_PROJECT_ID: prj_ixyMAElttoBiQRZBZbrkEZBIopYR
+        run: npx --yes vercel@latest deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+
+      - name: Marcar como publicado
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          deployment-id: ${{ steps.publicacao.outputs.deployment_id }}
+          state: success
+          environment-url: https://koracrm-frontend.vercel.app
+
+      - name: Marcar a falha
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ github.token }}
+          deployment-id: ${{ steps.publicacao.outputs.deployment_id }}
+          state: failure

@@ -1,0 +1,205 @@
+name: CI
+
+# Nada entra na branch principal sem passar por aqui. O pipeline antigo só
+# instalava dependência e construía o frontend, enquanto o README prometia
+# lint, análise estática e teste com cobertura.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (PHP 8.2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_sqlite, pdo_mysql, bcmath, gd, zip
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Instalar dependências
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Conferir a formatação
+        run: vendor/bin/pint --test
+
+      - name: Análise estática
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      # O piso é 70%, e o número de verdade sai no log deste passo. Subir o
+      # piso é decisão de quem for olhar o relatório, não chute daqui.
+      - name: Testar com cobertura
+        run: vendor/bin/pest --coverage --min=70
+
+  backend-mysql:
+    name: Backend no MySQL 8
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    # A bateria roda em SQLite na memória, que é rápido e não precisa de
+    # serviço. Este trabalho existe porque produção é MySQL, e diferença de
+    # dialeto (enum, índice, ordenação) só aparece no banco de verdade.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: integracao
+          MYSQL_DATABASE: koracrm_teste
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -u root -pintegracao"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_mysql, bcmath, gd, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Instalar dependências
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Testar contra o MySQL
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: koracrm_teste
+          DB_USERNAME: root
+          DB_PASSWORD: integracao
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+        run: vendor/bin/pest
+
+  frontend:
+    name: Frontend (Node 20)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Conferir os tipos
+        run: npm run type-check
+
+      - name: Testar
+        run: npx vitest run --coverage
+
+      - name: Construir
+        run: npm run build
+
+  ponta-a-ponta:
+    name: Ponta a ponta (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [frontend]
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar o navegador
+        run: npx playwright install --with-deps chromium
+
+      - name: Rodar os testes
+        run: npx playwright test
+
+      - name: Guardar o relatório quando falhar
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-playwright
+          path: frontend/playwright-report/
+          retention-days: 7
+
+  imagens:
+    name: Imagens de produção
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [backend, frontend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Construir a imagem da API
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./docker/backend/Dockerfile
+          target: producao
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Construir a imagem do frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/frontend/Dockerfile
+          target: producao
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  manifestos:
+    name: Manifestos do Kubernetes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pyyaml
+      - run: python k8s/conferir-manifestos.py

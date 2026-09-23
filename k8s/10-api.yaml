@@ -1,0 +1,123 @@
+# A API (PHP-FPM) e o trabalho que roda a fila.
+#
+# Duas réplicas da API porque ela não guarda estado: a sessão é token do
+# Sanctum, o cache é Redis e o anexo vai para o S3. O worker fica em uma só,
+# que é o suficiente para o volume de uma equipe comercial, e evita dois
+# processos disputando o mesmo trabalho.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: koracrm-api
+  namespace: koracrm
+  labels:
+    app: koracrm-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: koracrm-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: koracrm-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 82
+        fsGroup: 82
+      containers:
+        - name: api
+          image: koracrm-api:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: fpm
+              containerPort: 9000
+          envFrom:
+            - configMapRef:
+                name: koracrm-config
+            - secretRef:
+                name: koracrm-secret
+          resources:
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ['ALL']
+          livenessProbe:
+            tcpSocket:
+              port: fpm
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: fpm
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: koracrm-api
+  namespace: koracrm
+spec:
+  selector:
+    app: koracrm-api
+  ports:
+    - name: fpm
+      port: 9000
+      targetPort: fpm
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: koracrm-worker
+  namespace: koracrm
+  labels:
+    app: koracrm-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: koracrm-worker
+  template:
+    metadata:
+      labels:
+        app: koracrm-worker
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 82
+      containers:
+        - name: worker
+          image: koracrm-api:1.0.0
+          # --max-time faz o processo encerrar de hora em hora e o Kubernetes
+          # subir outro. É a forma barata de não conviver com vazamento de
+          # memória em processo de vida longa.
+          command: ['php', 'artisan', 'queue:work', '--tries=3', '--timeout=90', '--max-time=3600']
+          envFrom:
+            - configMapRef:
+                name: koracrm-config
+            - secretRef:
+                name: koracrm-secret
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 384Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ['ALL']
