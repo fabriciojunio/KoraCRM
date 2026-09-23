@@ -39,10 +39,15 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Só o que está em src. Sem isto o Vitest tenta rodar os arquivos de
+    // e2e/, que são do Playwright e usam outro test.beforeEach: a bateria
+    // quebra com um erro que não tem nada a ver com o código.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['node_modules/**', 'dist/**', 'e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      exclude: ['node_modules/', 'src/test/'],
+      exclude: ['node_modules/', 'src/test/', 'e2e/'],
     },
   },
 })
