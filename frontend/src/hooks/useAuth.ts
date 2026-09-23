@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
+import { DEMO_USUARIO, TOKEN_DEMO } from '../lib/demoData'
 import type { Usuario, TokenPayload } from '../types'
 
 interface EstadoAuth {
@@ -51,7 +52,7 @@ export function useAuth(): RetornoAuth {
         erro: null,
       })
 
-      navigate('/dashboard')
+      navigate('/painel')
     } catch (err: unknown) {
       const mensagem =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -66,18 +67,10 @@ export function useAuth(): RetornoAuth {
   }, [navigate])
 
   const loginDemo = useCallback(() => {
-    const demoUser: Usuario = {
-      id: 0,
-      nome: 'Usuário Demo',
-      email: 'demo@koracrm.com',
-      perfil: 'gerente',
-      ativo: true,
-      avatar: 'https://ui-avatars.com/api/?name=Demo&background=4f46e5&color=fff',
-    }
-    localStorage.setItem('koracrm_token', 'demo-token')
-    localStorage.setItem('koracrm_usuario', JSON.stringify(demoUser))
-    setEstado({ usuario: demoUser, carregando: false, erro: null })
-    navigate('/dashboard')
+    localStorage.setItem('koracrm_token', TOKEN_DEMO)
+    localStorage.setItem('koracrm_usuario', JSON.stringify(DEMO_USUARIO))
+    setEstado({ usuario: DEMO_USUARIO, carregando: false, erro: null })
+    navigate('/painel')
   }, [navigate])
 
   const logout = useCallback(async () => {
@@ -89,7 +82,7 @@ export function useAuth(): RetornoAuth {
       localStorage.removeItem('koracrm_token')
       localStorage.removeItem('koracrm_usuario')
       setEstado({ usuario: null, carregando: false, erro: null })
-      navigate('/login')
+      navigate('/entrar')
     }
   }, [navigate])
 

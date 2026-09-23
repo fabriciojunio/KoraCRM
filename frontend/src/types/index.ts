@@ -47,6 +47,7 @@ export interface Tarefa {
   concluida_em?: string
   prioridade: PrioridadeTarefa
   lead_id: number
+  lead?: { id: number; nome: string }
   responsavel: Pick<Usuario, 'id' | 'nome'>
   criado_em: string
 }

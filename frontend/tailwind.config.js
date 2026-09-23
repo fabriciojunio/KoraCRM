@@ -1,50 +1,45 @@
 /** @type {import('tailwindcss').Config} */
+
+// As cores e as fontes vivem em src/index.css, como variáveis. Aqui elas só
+// viram classe do Tailwind. Para mudar o visual, mexa lá.
+const cor = (nome) => `rgb(var(--cor-${nome}) / <alpha-value>)`
+
 export default {
-  content: [
-    './index.html',
-    './src/**/*.{js,ts,jsx,tsx}',
-  ],
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
-      },
-      // Identidade visual do KoraCRM. Para trocar a cor do sistema,
-      // ajuste só esta escala (ou as variáveis em src/index.css).
       colors: {
-        brand: {
-          50: '#f0faf6',
-          100: '#d4f0e3',
-          200: '#a9e1c8',
-          400: '#34b88f',
-          500: '#199b76',
-          600: '#0f7d60',
-          700: '#0b6149',
-          800: '#0a4e3b',
-        },
-        primary: {
-          50: '#f0faf6',
-          100: '#d4f0e3',
-          500: '#199b76',
-          600: '#0f7d60',
-          700: '#0b6149',
-        },
+        aco: cor('aco'),
+        'aco-fundo': cor('aco-fundo'),
+        ficha: cor('ficha'),
+        tinta: cor('tinta'),
+        'tinta-suave': cor('tinta-suave'),
+        grafite: cor('grafite'),
+        pauta: cor('pauta'),
+        borda: cor('borda'),
+        'borda-forte': cor('borda-forte'),
+        gaveta: cor('gaveta'),
+        'gaveta-clara': cor('gaveta-clara'),
+        caneta: cor('caneta'),
+        'caneta-clara': cor('caneta-clara'),
+        carimbo: cor('carimbo'),
+        'carimbo-clara': cor('carimbo-clara'),
+        aprovado: cor('aprovado'),
+        'aprovado-clara': cor('aprovado-clara'),
+        mostarda: cor('mostarda'),
+        'mostarda-clara': cor('mostarda-clara'),
+      },
+      fontFamily: {
+        titulo: ['Familjen Grotesk', 'system-ui', 'sans-serif'],
+        corpo: ['Instrument Sans', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
-        card: '14px',
+        DEFAULT: '2px',
+        ficha: '2px',
       },
-      boxShadow: {
-        card: '0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)',
-        pop: '0 8px 24px rgba(16, 24, 40, 0.12)',
-      },
-      animation: {
-        'slide-in': 'slideIn 0.2s ease-out',
-      },
-      keyframes: {
-        slideIn: {
-          from: { transform: 'translateY(-8px)', opacity: 0 },
-          to: { transform: 'translateY(0)', opacity: 1 },
-        },
+      maxWidth: {
+        leitura: '68ch',
       },
     },
   },

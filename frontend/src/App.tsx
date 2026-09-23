@@ -1,28 +1,31 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import FormLogin from './features/auth/FormLogin'
 import Layout from './components/layout/Layout'
+import { Carregando } from './components/ui/Estados'
 
-const Dashboard    = lazy(() => import('./app/dashboard/page'))
-const LeadsPage    = lazy(() => import('./app/leads/page'))
-const PipelinePage = lazy(() => import('./app/pipeline/page'))
-const TarefasPage  = lazy(() => import('./app/tarefas/page'))
+const Painel = lazy(() => import('./app/painel/page'))
+const Leads = lazy(() => import('./app/leads/page'))
+const Funil = lazy(() => import('./app/funil/page'))
+const Tarefas = lazy(() => import('./app/tarefas/page'))
+const Equipe = lazy(() => import('./app/equipe/page'))
 
-// Rota protegida — redireciona para login se não autenticado
 function RotaProtegida({ children }: { children: React.ReactNode }) {
   const { estaAutenticado } = useAuth()
-  if (!estaAutenticado) return <Navigate to="/login" replace />
+  if (!estaAutenticado) return <Navigate to="/entrar" replace />
   return <>{children}</>
+}
+
+function Pagina({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<Carregando />}>{children}</Suspense>
 }
 
 export default function App() {
   return (
-    <BrowserRouter
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
-        <Route path="/login" element={<FormLogin />} />
+        <Route path="/entrar" element={<FormLogin />} />
         <Route
           path="/"
           element={
@@ -31,13 +34,14 @@ export default function App() {
             </RotaProtegida>
           }
         >
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Suspense fallback={null}><Dashboard /></Suspense>} />
-          <Route path="leads"     element={<Suspense fallback={null}><LeadsPage /></Suspense>} />
-          <Route path="pipeline"  element={<Suspense fallback={null}><PipelinePage /></Suspense>} />
-          <Route path="tarefas"   element={<Suspense fallback={null}><TarefasPage /></Suspense>} />
+          <Route index element={<Navigate to="/painel" replace />} />
+          <Route path="painel" element={<Pagina><Painel /></Pagina>} />
+          <Route path="leads" element={<Pagina><Leads /></Pagina>} />
+          <Route path="funil" element={<Pagina><Funil /></Pagina>} />
+          <Route path="tarefas" element={<Pagina><Tarefas /></Pagina>} />
+          <Route path="equipe" element={<Pagina><Equipe /></Pagina>} />
         </Route>
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/painel" replace />} />
       </Routes>
     </BrowserRouter>
   )

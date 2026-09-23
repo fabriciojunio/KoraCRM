@@ -1,81 +1,70 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../../lib/api'
-import { isDemo, DEMO_TAREFAS } from '../../lib/demoData'
-import type { Tarefa } from '../../types'
-import { CheckCircle2, Circle, AlertTriangle, Clock } from 'lucide-react'
 import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { api } from '../../lib/api'
+import { useTarefas } from '../../hooks/useLeads'
+import { isDemo, DEMO_TAREFAS } from '../../lib/demoData'
+import { PRIORIDADES } from '../../lib/estagios'
+import { data, estaAtrasada, primeiroNome } from '../../lib/formato'
+import Etiqueta from '../../components/ui/Etiqueta'
+import { Carregando, EstadoVazio } from '../../components/ui/Estados'
+import type { Tarefa } from '../../types'
 
-const prioridadeConfig = {
-  baixa: { label: 'Baixa', cor: 'text-blue-600 bg-blue-50' },
-  media: { label: 'Média', cor: 'text-yellow-600 bg-yellow-50' },
-  alta: { label: 'Alta', cor: 'text-red-600 bg-red-50' },
-}
+type Filtro = 'pendentes' | 'concluidas' | 'todas'
 
-function CardTarefa({ tarefa, onConcluir }: { tarefa: Tarefa; onConcluir: (id: number) => void }) {
-  const prazo = tarefa.prazo ? new Date(tarefa.prazo) : null
-  const atrasada = prazo && !tarefa.concluida && prazo < new Date()
+const FILTROS: { chave: Filtro; nome: string }[] = [
+  { chave: 'pendentes', nome: 'Em aberto' },
+  { chave: 'concluidas', nome: 'Concluídas' },
+  { chave: 'todas', nome: 'Todas' },
+]
+
+function Linha({ tarefa, aoConcluir }: { tarefa: Tarefa; aoConcluir: (id: number) => void }) {
+  const atrasada = estaAtrasada(tarefa.prazo, tarefa.concluida)
+  const prioridade = PRIORIDADES[tarefa.prioridade]
 
   return (
-    <div className={`card flex items-start gap-4 transition-opacity ${tarefa.concluida ? 'opacity-60' : ''}`}>
-      <button
-        onClick={() => !tarefa.concluida && onConcluir(tarefa.id)}
+    <li className="flex items-start gap-3 px-4 py-3">
+      <input
+        type="checkbox"
+        checked={tarefa.concluida}
         disabled={tarefa.concluida}
-        className={`mt-0.5 shrink-0 transition-colors ${tarefa.concluida ? 'text-green-500' : 'text-gray-300 hover:text-brand-500'}`}
-      >
-        {tarefa.concluida
-          ? <CheckCircle2 size={22} />
-          : <Circle size={22} />
-        }
-      </button>
+        onChange={() => aoConcluir(tarefa.id)}
+        aria-label={`Concluir ${tarefa.titulo}`}
+        className="mt-1 h-4 w-4 accent-caneta"
+      />
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className={`font-medium text-sm ${tarefa.concluida ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+        <div className="flex items-start justify-between gap-3">
+          <p className={`text-sm ${tarefa.concluida ? 'line-through text-grafite' : ''}`}>
             {tarefa.titulo}
-          </h3>
-          <span className={`badge shrink-0 text-xs ${prioridadeConfig[tarefa.prioridade].cor}`}>
-            {prioridadeConfig[tarefa.prioridade].label}
-          </span>
+            {tarefa.lead && <span className="text-grafite"> · {tarefa.lead.nome}</span>}
+          </p>
+          <Etiqueta cor={prioridade.etiqueta}>{prioridade.nome}</Etiqueta>
         </div>
 
         {tarefa.descricao && (
-          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{tarefa.descricao}</p>
+          <p className="text-xs text-grafite mt-0.5 max-w-leitura">{tarefa.descricao}</p>
         )}
 
-        <div className="flex items-center gap-3 mt-2 text-xs">
-          {prazo && (
-            <div className={`flex items-center gap-1 ${atrasada ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
-              {atrasada ? <AlertTriangle size={12} /> : <Clock size={12} />}
-              {prazo.toLocaleDateString('pt-BR')}
-              {atrasada && ' (atrasada)'}
-            </div>
-          )}
-          {tarefa.responsavel && (
-            <span className="text-gray-400">{tarefa.responsavel.nome}</span>
-          )}
-        </div>
+        <p className="etiqueta mt-1 normal-case tracking-normal">
+          <span className={atrasada ? 'text-carimbo' : ''}>
+            {atrasada ? `Venceu em ${data(tarefa.prazo)}` : `Prazo ${data(tarefa.prazo)}`}
+          </span>
+          {tarefa.responsavel && <> · {primeiroNome(tarefa.responsavel.nome)}</>}
+        </p>
       </div>
-    </div>
+    </li>
   )
 }
 
-export default function TarefasPage() {
+export default function PaginaTarefas() {
   const queryClient = useQueryClient()
-  const [filtro, setFiltro] = useState<'todas' | 'pendentes' | 'concluidas'>('pendentes')
+  const [filtro, setFiltro] = useState<Filtro>('pendentes')
+  const { data: tarefas, isLoading } = useTarefas()
 
-  const { data: tarefas, isLoading } = useQuery({
-    queryKey: ['tarefas'],
-    queryFn: async (): Promise<Tarefa[]> => {
-      if (isDemo()) return DEMO_TAREFAS
-      const { data } = await api.get<Tarefa[]>('/tarefas')
-      return data
-    },
-  })
-
-  const concluirTarefa = useMutation({
+  const concluir = useMutation({
     mutationFn: async (id: number) => {
       if (isDemo()) {
-        const tarefa = DEMO_TAREFAS.find(t => t.id === id)
+        const tarefa = DEMO_TAREFAS.find((t) => t.id === id)
         if (tarefa) {
           tarefa.concluida = true
           tarefa.concluida_em = new Date().toISOString()
@@ -86,78 +75,59 @@ export default function TarefasPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tarefas'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['painel'] })
     },
   })
 
-  const tarefasFiltradas = tarefas?.filter((t) => {
+  const lista = tarefas ?? []
+  const emAberto = lista.filter((t) => !t.concluida)
+  const atrasadas = emAberto.filter((t) => estaAtrasada(t.prazo)).length
+
+  const visiveis = lista.filter((t) => {
     if (filtro === 'pendentes') return !t.concluida
     if (filtro === 'concluidas') return t.concluida
     return true
-  }) ?? []
-
-  const atrasadas = tarefas?.filter(
-    (t) => !t.concluida && t.prazo && new Date(t.prazo) < new Date()
-  ).length ?? 0
+  })
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tarefas</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            {tarefas?.filter(t => !t.concluida).length ?? 0} pendentes
-            {atrasadas > 0 && (
-              <span className="ml-2 text-red-600 font-medium">
-                · {atrasadas} atrasada{atrasadas > 1 ? 's' : ''}
-              </span>
-            )}
-          </p>
-        </div>
-      </div>
+    <div className="space-y-4">
+      <header>
+        <h1 className="font-titulo text-xl">Tarefas</h1>
+        <p className="text-sm text-grafite">
+          {emAberto.length} em aberto
+          {atrasadas > 0 && <span className="text-carimbo"> · {atrasadas} fora do prazo</span>}
+        </p>
+      </header>
 
-      {/* Filtros */}
-      <div className="flex gap-2">
-        {([
-          { key: 'pendentes', label: 'Pendentes' },
-          { key: 'concluidas', label: 'Concluídas' },
-          { key: 'todas', label: 'Todas' },
-        ] as const).map((f) => (
+      <div className="flex border border-borda w-fit bg-ficha">
+        {FILTROS.map((f) => (
           <button
-            key={f.key}
-            onClick={() => setFiltro(f.key)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors
-              ${filtro === f.key
-                ? 'bg-brand-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-              }`}
+            key={f.chave}
+            type="button"
+            onClick={() => setFiltro(f.chave)}
+            aria-pressed={filtro === f.chave}
+            className={`h-8 px-3 text-sm border-r border-borda last:border-r-0 transition-colors ${
+              filtro === f.chave ? 'bg-gaveta text-white' : 'hover:bg-aco-fundo'
+            }`}
           >
-            {f.label}
+            {f.nome}
           </button>
         ))}
       </div>
 
-      {/* Lista */}
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
-        </div>
-      ) : !tarefasFiltradas.length ? (
-        <div className="text-center py-16 text-gray-400">
-          <CheckCircle2 size={40} className="mx-auto mb-3 opacity-40" />
-          <p className="font-medium">Nenhuma tarefa {filtro === 'pendentes' ? 'pendente' : filtro === 'concluidas' ? 'concluída' : ''}</p>
-          <p className="text-sm mt-1">As tarefas são criadas dentro de cada lead</p>
-        </div>
+        <Carregando rotulo="Buscando tarefas" />
+      ) : visiveis.length === 0 ? (
+        <EstadoVazio
+          titulo="Nada nesta gaveta"
+          descricao="As tarefas nascem dentro da ficha do lead, junto com o prazo e o responsável."
+        />
       ) : (
-        <div className="space-y-3 max-w-3xl">
-          {tarefasFiltradas.map((tarefa) => (
-            <CardTarefa
-              key={tarefa.id}
-              tarefa={tarefa}
-              onConcluir={(id) => concluirTarefa.mutate(id)}
-            />
+        <ul className="ficha divide-y divide-pauta max-w-[760px]">
+          {visiveis.map((tarefa) => (
+            <Linha key={tarefa.id} tarefa={tarefa} aoConcluir={(id) => concluir.mutate(id)} />
           ))}
-        </div>
+        </ul>
       )}
     </div>
   )

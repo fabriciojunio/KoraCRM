@@ -1,108 +1,119 @@
-import { Outlet, NavLink } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
-import { LayoutDashboard, Users, Kanban, CheckSquare, LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { NavLink, Outlet } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
+import { isDemo } from '../../lib/demoData'
+import { iniciais } from '../../lib/formato'
+import Marca from '../ui/Marca'
 
-const navegacao = [
-  { nome: 'Dashboard', href: '/dashboard', icone: LayoutDashboard },
-  { nome: 'Leads', href: '/leads', icone: Users },
-  { nome: 'Pipeline', href: '/pipeline', icone: Kanban },
-  { nome: 'Tarefas', href: '/tarefas', icone: CheckSquare },
+const GUIAS: { nome: string; href: string; somenteGestao?: boolean }[] = [
+  { nome: 'Painel', href: '/painel' },
+  { nome: 'Leads', href: '/leads' },
+  { nome: 'Funil', href: '/funil' },
+  { nome: 'Tarefas', href: '/tarefas' },
+  { nome: 'Equipe', href: '/equipe', somenteGestao: true },
 ]
 
+function Guia({ nome, href }: { nome: string; href: string }) {
+  return (
+    <NavLink
+      to={href}
+      className={({ isActive }) =>
+        `relative -mb-px px-4 py-2 border border-b-0 font-titulo text-sm whitespace-nowrap
+         transition-colors ${
+           isActive
+             ? 'bg-ficha border-borda-forte text-tinta'
+             : 'bg-aco-fundo border-borda text-tinta-suave hover:bg-ficha/70'
+         }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <span
+            className={`absolute inset-x-0 top-0 h-[3px] ${isActive ? 'bg-caneta' : 'bg-transparent'}`}
+          />
+          {nome}
+        </>
+      )}
+    </NavLink>
+  )
+}
+
 export default function Layout() {
-  const { usuario, logout } = useAuth()
-  const [aberta, setAberta] = useState(false)
+  const { usuario, logout, isGerente } = useAuth()
+  const [menuAberto, setMenuAberto] = useState(false)
+  const demo = isDemo()
+
+  const guias = GUIAS.filter((g) => !g.somenteGestao || isGerente)
 
   return (
-    <div className="flex h-screen">
-      {aberta && (
-        <div
-          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
-          onClick={() => setAberta(false)}
-        />
+    <div className="min-h-full flex flex-col">
+      <header className="bg-gaveta text-white">
+        <div className="mx-auto max-w-[1180px] px-4 h-[52px] flex items-center justify-between">
+          <Marca claro />
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuAberto((v) => !v)}
+              className="flex items-center gap-2.5 h-9 pl-1.5 pr-2.5 text-left hover:bg-white/10"
+              aria-expanded={menuAberto}
+            >
+              <span className="h-7 w-7 bg-white/10 font-mono text-[11px] flex items-center justify-center">
+                {iniciais(usuario?.nome)}
+              </span>
+              <span className="hidden sm:block leading-tight">
+                <span className="block text-[13px]">{usuario?.nome}</span>
+                <span className="block etiqueta text-white/50 text-[10px]">{usuario?.perfil}</span>
+              </span>
+            </button>
+
+            {menuAberto && (
+              <div className="absolute right-0 top-full mt-1 z-30 w-44 bg-ficha border border-borda-forte">
+                <p className="px-3 py-2 border-b border-pauta text-xs text-grafite truncate">
+                  {usuario?.email}
+                </p>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="w-full text-left px-3 py-2 text-sm text-tinta hover:bg-aco-fundo"
+                >
+                  Sair da conta
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {demo && (
+        <div className="bg-mostarda-clara border-b border-mostarda/30">
+          <div className="mx-auto max-w-[1180px] px-4 py-1.5 flex items-center gap-2">
+            <span className="etiqueta text-mostarda">Demonstração</span>
+            <p className="text-[13px] text-tinta-suave">
+              Os dados desta sessão são fictícios e nada é gravado no servidor.
+            </p>
+          </div>
+        </div>
       )}
 
-      <aside
-        className={`fixed inset-y-0 left-0 z-30 w-60 flex flex-col transform transition-transform
-          lg:static lg:translate-x-0 ${aberta ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{ backgroundColor: 'var(--sidebar-bg)' }}
-      >
-        <div className="flex items-center justify-between h-14 px-5">
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-sm bg-brand-500" />
-            <span className="text-[15px] font-semibold tracking-tight text-white">
-              KoraCRM
-            </span>
-          </div>
-          <button
-            className="lg:hidden text-white/50 hover:text-white"
-            onClick={() => setAberta(false)}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {navegacao.map((item) => (
-            <NavLink
-              key={item.href}
-              to={item.href}
-              onClick={() => setAberta(false)}
-              className={({ isActive }) =>
-                `nav-link ${isActive ? 'nav-link-active' : ''}`
-              }
-            >
-              <item.icone size={17} strokeWidth={1.75} />
-              {item.nome}
-            </NavLink>
+      <div className="mx-auto w-full max-w-[1180px] px-4 pt-4">
+        <nav className="flex gap-1 overflow-x-auto border-b border-borda-forte" aria-label="Seções">
+          {guias.map((g) => (
+            <Guia key={g.href} nome={g.nome} href={g.href} />
           ))}
         </nav>
-
-        <div
-          className="px-3 py-4 mt-auto"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
-        >
-          <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="h-8 w-8 rounded-md bg-white/10 flex items-center justify-center">
-              <span className="text-sm font-medium text-white">
-                {usuario?.nome?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{usuario?.nome}</p>
-              <p className="text-xs capitalize" style={{ color: 'var(--sidebar-fg-dim)' }}>
-                {usuario?.perfil}
-              </p>
-            </div>
-          </div>
-          <button onClick={logout} className="nav-link w-full">
-            <LogOut size={16} strokeWidth={1.75} />
-            Sair
-          </button>
-        </div>
-      </aside>
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header
-          className="lg:hidden flex items-center h-14 px-4 bg-white"
-          style={{ borderBottom: '1px solid var(--border)' }}
-        >
-          <button
-            onClick={() => setAberta(true)}
-            className="text-gray-500 hover:text-gray-800"
-          >
-            <Menu size={22} />
-          </button>
-          <span className="ml-3 text-[15px] font-semibold text-gray-900">KoraCRM</span>
-        </header>
-
-        <main className="flex-1 overflow-auto px-6 py-7 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <Outlet />
-          </div>
-        </main>
       </div>
+
+      <main className="flex-1 mx-auto w-full max-w-[1180px] px-4 py-6">
+        <Outlet />
+      </main>
+
+      <footer className="border-t border-borda">
+        <div className="mx-auto max-w-[1180px] px-4 py-4 flex flex-wrap gap-x-4 gap-y-1 justify-between etiqueta">
+          <span>KoraCRM · Gestão comercial</span>
+          <span>Laravel 11 · React 18</span>
+        </div>
+      </footer>
     </div>
   )
 }
