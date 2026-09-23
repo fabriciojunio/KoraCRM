@@ -3,6 +3,11 @@ name: Publicar frontend
 # Publica a interface na Vercel depois que o CI fecha em verde na principal.
 # A API não é publicada aqui: o endereço no ar mostra só o frontend, e o
 # README diz isso com todas as letras.
+#
+# Sem o segredo VERCEL_TOKEN no repositório, a publicação é pulada com um
+# aviso, em vez de deixar um X vermelho permanente no histórico por causa de
+# uma credencial que ninguém cadastrou. Para ligar:
+#   gh secret set VERCEL_TOKEN
 on:
   workflow_run:
     workflows: [CI]
@@ -19,9 +24,23 @@ jobs:
       deployments: write
 
     steps:
+      - name: Conferir se a credencial está cadastrada
+        id: credencial
+        env:
+          TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "existe=nao" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Publicação pulada::Sem VERCEL_TOKEN no repositório. Cadastre com: gh secret set VERCEL_TOKEN"
+          else
+            echo "existe=sim" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.credencial.outputs.existe == 'sim'
 
       - name: Abrir o registro de publicação
+        if: steps.credencial.outputs.existe == 'sim'
         uses: chrnorm/deployment-action@v2
         id: publicacao
         with:
@@ -30,10 +49,12 @@ jobs:
           initial-status: in_progress
 
       - uses: actions/setup-node@v4
+        if: steps.credencial.outputs.existe == 'sim'
         with:
           node-version: '20'
 
       - name: Publicar
+        if: steps.credencial.outputs.existe == 'sim'
         working-directory: frontend
         env:
           VERCEL_ORG_ID: team_SEbBZxQ9aO2or7wcwtT2qt41
@@ -41,7 +62,7 @@ jobs:
         run: npx --yes vercel@latest deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
 
       - name: Marcar como publicado
-        if: success()
+        if: success() && steps.credencial.outputs.existe == 'sim'
         uses: chrnorm/deployment-status@v2
         with:
           token: ${{ github.token }}
@@ -50,7 +71,7 @@ jobs:
           environment-url: https://koracrm-frontend.vercel.app
 
       - name: Marcar a falha
-        if: failure()
+        if: failure() && steps.credencial.outputs.existe == 'sim'
         uses: chrnorm/deployment-status@v2
         with:
           token: ${{ github.token }}
