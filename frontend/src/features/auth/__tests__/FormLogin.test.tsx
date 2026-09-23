@@ -7,14 +7,20 @@ import FormLogin from '../FormLogin'
 
 // Mock do hook useAuth
 const mockLogin = vi.fn()
+const mockLoginDemo = vi.fn()
 vi.mock('../../../hooks/useAuth', () => ({
   useAuth: () => ({
     login: mockLogin,
+    loginDemo: mockLoginDemo,
     carregando: false,
     erro: null,
     estaAutenticado: false,
   }),
 }))
+
+// Nome inteiro: /entrar/ casa também com o botão da demonstração.
+const botaoEntrar = () =>
+  screen.getByRole('button', { name: /entrar na conta/i })
 
 const renderFormLogin = () => {
   const queryClient = new QueryClient({
@@ -40,7 +46,7 @@ describe('FormLogin', () => {
 
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument()
+    expect(botaoEntrar()).toBeInTheDocument()
   })
 
   it('mostra erro de validação para email inválido', async () => {
@@ -48,7 +54,7 @@ describe('FormLogin', () => {
     const user = userEvent.setup()
 
     await user.type(screen.getByLabelText(/e-mail/i), 'email-invalido')
-    await user.click(screen.getByRole('button', { name: /entrar/i }))
+    await user.click(botaoEntrar())
 
     await waitFor(() => {
       expect(screen.getByText(/e-mail inválido/i)).toBeInTheDocument()
@@ -61,7 +67,7 @@ describe('FormLogin', () => {
 
     await user.type(screen.getByLabelText(/e-mail/i), 'valido@email.com')
     await user.type(screen.getByLabelText(/senha/i), '123')
-    await user.click(screen.getByRole('button', { name: /entrar/i }))
+    await user.click(botaoEntrar())
 
     await waitFor(() => {
       expect(screen.getByText(/mínimo 8 caracteres/i)).toBeInTheDocument()
@@ -74,7 +80,7 @@ describe('FormLogin', () => {
 
     await user.type(screen.getByLabelText(/e-mail/i), 'fabricio@koracrm.com.br')
     await user.type(screen.getByLabelText(/senha/i), 'senha123456')
-    await user.click(screen.getByRole('button', { name: /entrar/i }))
+    await user.click(botaoEntrar())
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith(
@@ -88,10 +94,22 @@ describe('FormLogin', () => {
     renderFormLogin()
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: /entrar/i }))
+    await user.click(botaoEntrar())
 
     await waitFor(() => {
       expect(mockLogin).not.toHaveBeenCalled()
     })
+  })
+
+  it('entra na demonstração sem passar pelo formulário', async () => {
+    renderFormLogin()
+    const user = userEvent.setup()
+
+    await user.click(
+      screen.getByRole('button', { name: /entrar como demonstração/i })
+    )
+
+    expect(mockLoginDemo).toHaveBeenCalledTimes(1)
+    expect(mockLogin).not.toHaveBeenCalled()
   })
 })

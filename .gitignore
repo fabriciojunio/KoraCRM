@@ -19,6 +19,7 @@ frontend/vite.config.d.ts
 
 # Banco local / caches de teste
 backend/database/*.sqlite
+backend/storage/framework/testing/
 backend/.phpunit.result.cache
 backend/.phpunit.cache/
 backend/coverage/

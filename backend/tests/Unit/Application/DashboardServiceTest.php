@@ -11,7 +11,7 @@ beforeEach(function () {
 
 afterEach(fn () => Mockery::close());
 
-test('metricas calcula taxa de conversao corretamente', function () {
+test('métricas calcula taxa de conversão corretamente', function () {
     $this->repositorio->shouldReceive('contagemPorEstagio')->andReturn([
         'novo'     => 10,
         'contato'  => 5,
@@ -42,7 +42,7 @@ test('metricas calcula taxa de conversao corretamente', function () {
     expect($resultado['taxa_conversao'])->toBe($taxaEsperada);
 });
 
-test('metricas retorna zero quando nao ha leads', function () {
+test('métricas retorna zero quando não há leads', function () {
     $this->repositorio->shouldReceive('contagemPorEstagio')->andReturn([
         'novo' => 0, 'contato' => 0, 'proposta' => 0, 'ganho' => 0, 'perdido' => 0,
     ]);
@@ -59,7 +59,7 @@ test('metricas retorna zero quando nao ha leads', function () {
     expect($resultado['total_leads'])->toBe(0);
 });
 
-test('funil retorna todos os estagios', function () {
+test('funil retorna todos os estágios', function () {
     $this->repositorio->shouldReceive('contagemPorEstagio')->andReturn([
         'novo' => 5, 'contato' => 3, 'proposta' => 2, 'ganho' => 1, 'perdido' => 1,
     ]);

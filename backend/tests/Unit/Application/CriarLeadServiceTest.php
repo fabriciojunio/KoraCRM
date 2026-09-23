@@ -111,7 +111,7 @@ test('dto preserva dados opcionais corretamente', function () {
     expect($dto->criadoPor)->toBe(1);
 });
 
-test('dto usa criado_por como responsavel quando responsavel_id não informado', function () {
+test('dto usa criado_por como responsável quando responsavel_id não informado', function () {
     $dto = CriarLeadDTO::fromArray(
         ['nome' => 'Lead Sem Responsável'],
         criadoPor: 10

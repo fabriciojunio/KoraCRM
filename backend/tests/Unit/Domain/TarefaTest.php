@@ -2,7 +2,7 @@
 
 use App\Models\Tarefa;
 
-test('tarefa nao atrasada quando nao tem prazo', function () {
+test('tarefa não atrasada quando não tem prazo', function () {
     $tarefa = new Tarefa();
     $tarefa->concluida = false;
     $tarefa->prazo = null;
@@ -10,7 +10,7 @@ test('tarefa nao atrasada quando nao tem prazo', function () {
     expect($tarefa->estaAtrasada())->toBeFalse();
 });
 
-test('tarefa nao atrasada quando ja esta concluida', function () {
+test('tarefa não atrasada quando já está concluída', function () {
     $tarefa = new Tarefa();
     $tarefa->concluida = true;
     $tarefa->prazo = now()->subDay();
@@ -18,7 +18,7 @@ test('tarefa nao atrasada quando ja esta concluida', function () {
     expect($tarefa->estaAtrasada())->toBeFalse();
 });
 
-test('tarefa atrasada quando prazo passou e nao esta concluida', function () {
+test('tarefa atrasada quando prazo passou e não está concluída', function () {
     $tarefa = new Tarefa();
     $tarefa->concluida = false;
     $tarefa->prazo = now()->subDay();
@@ -26,7 +26,7 @@ test('tarefa atrasada quando prazo passou e nao esta concluida', function () {
     expect($tarefa->estaAtrasada())->toBeTrue();
 });
 
-test('tarefa nao atrasada quando prazo e futuro', function () {
+test('tarefa não atrasada quando prazo é futuro', function () {
     $tarefa = new Tarefa();
     $tarefa->concluida = false;
     $tarefa->prazo = now()->addDay();
