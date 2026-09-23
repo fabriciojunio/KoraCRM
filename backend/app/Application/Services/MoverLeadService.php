@@ -53,14 +53,14 @@ class MoverLeadService
         if (! in_array($novoEstagio, Lead::ESTAGIOS)) {
             throw new InvalidArgumentException(
                 "Estágio '{$novoEstagio}' inválido. "
-                . 'Estágios válidos: ' . implode(', ', Lead::ESTAGIOS)
+                .'Estágios válidos: '.implode(', ', Lead::ESTAGIOS)
             );
         }
 
         if ($lead->estaFechado()) {
             throw new RuntimeException(
                 "Lead já está fechado no estágio '{$lead->estagio}' "
-                . 'e não pode ser movido.'
+                .'e não pode ser movido.'
             );
         }
 

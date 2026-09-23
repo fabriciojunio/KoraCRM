@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 /**
  * @OA\Info(
  *     title="KoraCRM API",
@@ -24,5 +26,5 @@ namespace App\Http\Controllers;
  */
 abstract class Controller
 {
-    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+    use AuthorizesRequests;
 }

@@ -7,6 +7,7 @@ use App\Infrastructure\Repositories\EloquentLeadRepository;
 use App\Models\Lead;
 use App\Models\Tarefa;
 use App\Models\Usuario;
+use App\Observers\InvalidarMetricasObserver;
 use App\Policies\LeadPolicy;
 use App\Policies\TarefaPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -21,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Lead::observe(InvalidarMetricasObserver::class);
+        Tarefa::observe(InvalidarMetricasObserver::class);
+
         Gate::policy(Lead::class, LeadPolicy::class);
         Gate::policy(Tarefa::class, TarefaPolicy::class);
 

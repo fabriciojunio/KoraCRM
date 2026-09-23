@@ -20,7 +20,7 @@ test('cria lead com dados mínimos obrigatórios', function () {
         criadoPor: 1,
     );
 
-    $leadEsperado = new Lead();
+    $leadEsperado = new Lead;
     $leadEsperado->id = 1;
     $leadEsperado->nome = 'João Silva';
     $leadEsperado->estagio = 'novo';
@@ -50,7 +50,7 @@ test('lead sempre é criado no estágio novo independente de outros dados', func
         valorEstimado: 5000.0,
     );
 
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->id = 2;
     $lead->nome = 'Maria Santos';
     $lead->estagio = 'novo';
@@ -70,7 +70,7 @@ test('lead sempre é criado no estágio novo independente de outros dados', func
 test('registra histórico de criação', function () {
     $dto = new CriarLeadDTO(nome: 'Lead Novo', criadoPor: 5);
 
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->id = 3;
     $lead->nome = 'Lead Novo';
     $lead->estagio = 'novo';

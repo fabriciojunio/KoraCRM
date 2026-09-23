@@ -24,7 +24,7 @@ class MoverLeadRequest extends FormRequest
     {
         return [
             'estagio.required' => 'O estágio de destino é obrigatório.',
-            'estagio.in' => 'Estágio inválido. Use: ' . implode(', ', Lead::ESTAGIOS),
+            'estagio.in' => 'Estágio inválido. Use: '.implode(', ', Lead::ESTAGIOS),
         ];
     }
 }

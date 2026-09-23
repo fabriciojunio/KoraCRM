@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\LeadController;
+use App\Http\Controllers\DadosPessoaisController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeadController;
+use App\Http\Controllers\SaudeController;
 use App\Http\Controllers\TarefaController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/saude', SaudeController::class)->middleware('throttle:30,1');
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:3,1');
@@ -27,6 +31,9 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::patch('leads/{lead}/estagio', [LeadController::class, 'moverEstagio']);
     Route::get('leads/{lead}/historico', [LeadController::class, 'historico']);
     Route::post('leads/{lead}/arquivos', [LeadController::class, 'uploadArquivo']);
+
+    Route::get('leads/{lead}/dados-pessoais', [DadosPessoaisController::class, 'show']);
+    Route::delete('leads/{lead}/dados-pessoais', [DadosPessoaisController::class, 'destroy']);
 
     Route::get('pipeline', [LeadController::class, 'pipeline']);
 

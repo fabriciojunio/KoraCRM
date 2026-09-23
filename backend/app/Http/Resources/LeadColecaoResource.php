@@ -2,6 +2,4 @@
 
 namespace App\Http\Resources;
 
-class LeadColecaoResource extends LeadResource
-{
-}
+class LeadColecaoResource extends LeadResource {}

@@ -60,7 +60,7 @@ return new class extends Migration
             $table->string('nome_original', 255);
             $table->string('caminho', 500);
             $table->string('disco', 20)->default('local')
-                  ->comment('local ou s3');
+                ->comment('local ou s3');
             $table->unsignedInteger('tamanho')->comment('em bytes');
             $table->string('mime_type', 100);
             $table->unsignedBigInteger('enviado_por');

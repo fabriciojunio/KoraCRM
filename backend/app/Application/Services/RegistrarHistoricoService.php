@@ -3,6 +3,7 @@
 namespace App\Application\Services;
 
 use App\Models\HistoricoLead;
+use InvalidArgumentException;
 
 class RegistrarHistoricoService
 {
@@ -14,6 +15,10 @@ class RegistrarHistoricoService
         ?array $dadosAnteriores = null,
         ?array $dadosNovos = null,
     ): HistoricoLead {
+        if (! in_array($tipo, HistoricoLead::TIPOS, true)) {
+            throw new InvalidArgumentException("Tipo de histórico desconhecido: {$tipo}");
+        }
+
         return HistoricoLead::create([
             'lead_id' => $leadId,
             'usuario_id' => $usuarioId,

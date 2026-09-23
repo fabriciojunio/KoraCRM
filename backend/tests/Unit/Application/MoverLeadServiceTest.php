@@ -4,7 +4,6 @@ use App\Application\Services\MoverLeadService;
 use App\Application\Services\RegistrarHistoricoService;
 use App\Domain\Lead\LeadRepositoryInterface;
 use App\Models\Lead;
-use Mockery\MockInterface;
 
 // Configura mocks reutilizáveis
 beforeEach(function () {
@@ -20,10 +19,11 @@ afterEach(function () {
 // Fábrica de lead para testes
 function criarLeadMock(string $estagio = 'novo'): Lead
 {
-    $lead = new Lead();
+    $lead = new Lead;
     $lead->id = 1;
     $lead->nome = 'Lead Teste';
     $lead->estagio = $estagio;
+
     return $lead;
 }
 
@@ -68,34 +68,34 @@ test('lança exceção para estágio inválido', function () {
     $this->repositorio->shouldReceive('buscarPorId')->andReturn($lead);
 
     $this->servico->executar(1, 'estagio_invalido', 99);
-})->throws(\InvalidArgumentException::class);
+})->throws(InvalidArgumentException::class);
 
 test('lança exceção quando lead já está fechado como ganho', function () {
     $lead = criarLeadMock('ganho');
     $this->repositorio->shouldReceive('buscarPorId')->andReturn($lead);
 
     $this->servico->executar(1, 'contato', 99);
-})->throws(\RuntimeException::class, 'Lead já está fechado');
+})->throws(RuntimeException::class, 'Lead já está fechado');
 
 test('lança exceção quando lead já está fechado como perdido', function () {
     $lead = criarLeadMock('perdido');
     $this->repositorio->shouldReceive('buscarPorId')->andReturn($lead);
 
     $this->servico->executar(1, 'contato', 99);
-})->throws(\RuntimeException::class);
+})->throws(RuntimeException::class);
 
 test('lança exceção quando lead não é encontrado', function () {
     $this->repositorio->shouldReceive('buscarPorId')->andReturn(null);
 
     $this->servico->executar(999, 'contato', 99);
-})->throws(\RuntimeException::class, 'não encontrado');
+})->throws(RuntimeException::class, 'não encontrado');
 
 test('lança exceção quando tenta mover para o mesmo estágio', function () {
     $lead = criarLeadMock('contato');
     $this->repositorio->shouldReceive('buscarPorId')->andReturn($lead);
 
     $this->servico->executar(1, 'contato', 99);
-})->throws(\InvalidArgumentException::class, "já está no estágio");
+})->throws(InvalidArgumentException::class, 'já está no estágio');
 
 test('registra histórico ao mover lead', function () {
     $lead = criarLeadMock('novo');

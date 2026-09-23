@@ -2,7 +2,7 @@
 
 use App\Application\Services\DashboardService;
 use App\Domain\Lead\LeadRepositoryInterface;
-use App\Models\Lead;
+use Illuminate\Support\Facades\Cache;
 
 beforeEach(function () {
     $this->repositorio = Mockery::mock(LeadRepositoryInterface::class);
@@ -13,23 +13,23 @@ afterEach(fn () => Mockery::close());
 
 test('métricas calcula taxa de conversão corretamente', function () {
     $this->repositorio->shouldReceive('contagemPorEstagio')->andReturn([
-        'novo'     => 10,
-        'contato'  => 5,
+        'novo' => 10,
+        'contato' => 5,
         'proposta' => 3,
-        'ganho'    => 2,
-        'perdido'  => 1,
+        'ganho' => 2,
+        'perdido' => 1,
     ]);
 
     $this->repositorio->shouldReceive('valorTotalPorEstagio')->andReturn([
-        'novo'     => 0,
-        'contato'  => 5000,
+        'novo' => 0,
+        'contato' => 5000,
         'proposta' => 15000,
-        'ganho'    => 30000,
-        'perdido'  => 0,
+        'ganho' => 30000,
+        'perdido' => 0,
     ]);
 
     // Força execução sem cache
-    \Illuminate\Support\Facades\Cache::shouldReceive('remember')
+    Cache::shouldReceive('remember')
         ->andReturnUsing(fn ($key, $ttl, $callback) => $callback());
 
     $resultado = $this->servico->metricas();
@@ -50,7 +50,7 @@ test('métricas retorna zero quando não há leads', function () {
         'novo' => 0, 'contato' => 0, 'proposta' => 0, 'ganho' => 0, 'perdido' => 0,
     ]);
 
-    \Illuminate\Support\Facades\Cache::shouldReceive('remember')
+    Cache::shouldReceive('remember')
         ->andReturnUsing(fn ($key, $ttl, $callback) => $callback());
 
     $resultado = $this->servico->metricas();
