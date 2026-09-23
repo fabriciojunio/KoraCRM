@@ -27,7 +27,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('koracrm_token')
       localStorage.removeItem('koracrm_usuario')
-      window.location.href = '/login'
+      window.location.href = '/entrar'
     }
 
     if (error.response?.status === 429) {

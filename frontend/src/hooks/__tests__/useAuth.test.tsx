@@ -78,7 +78,7 @@ describe('useAuth', () => {
     expect(result.current.usuario).toEqual(usuarioMock)
     expect(result.current.estaAutenticado).toBe(true)
     expect(localStorage.getItem('koracrm_token')).toBe('token_teste_123')
-    expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
+    expect(mockNavigate).toHaveBeenCalledWith('/painel')
   })
 
   it('define erro quando login falha', async () => {
@@ -112,7 +112,7 @@ describe('useAuth', () => {
     expect(result.current.usuario).toBeNull()
     expect(localStorage.getItem('koracrm_token')).toBeNull()
     expect(localStorage.getItem('koracrm_usuario')).toBeNull()
-    expect(mockNavigate).toHaveBeenCalledWith('/login')
+    expect(mockNavigate).toHaveBeenCalledWith('/entrar')
   })
 
   it('limpa dados locais mesmo quando API de logout falha', async () => {

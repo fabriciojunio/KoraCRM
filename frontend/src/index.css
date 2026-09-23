@@ -1,26 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /*
-  Tokens centrais do tema. Para mudar a aparência do sistema, comece
-  por aqui (e pela escala "brand" em tailwind.config.js).
+  As cores são canais RGB soltos, não hexadecimal: é o formato que deixa o
+  Tailwind aplicar opacidade (border-caneta/30) sobre um token. Em CSS ou SVG,
+  use rgb(var(--cor-x)).
+
+  Tudo que decide cor, fonte e forma do KoraCRM está neste bloco.
+  A referência é o fichário de aço do escritório comercial: chapa fria,
+  ficha branca pautada, guia de cartolina separando os estágios e etiqueta
+  datilografada. Ver docs/IDENTIDADE_VISUAL.md antes de mexer.
 */
 :root {
-  --app-bg: #f4f5f4;
-  --surface: #ffffff;
-  --border: #e4e7e5;
-  --text: #16201d;
-  --muted: #6a766f;
+  --cor-aco: 228 231 233;
+  --cor-aco-fundo: 214 219 222;
+  --cor-ficha: 255 255 255;
 
-  --sidebar-bg: #0d1c18;
-  --sidebar-fg: #cdd6d2;
-  --sidebar-fg-dim: #7e8c86;
-  --sidebar-active: rgba(255, 255, 255, 0.08);
+  --cor-tinta: 22 25 28;
+  --cor-tinta-suave: 74 81 87;
+  --cor-grafite: 107 115 122;
 
-  --r: 10px;
+  --cor-pauta: 221 225 228;
+  --cor-borda: 183 191 196;
+  --cor-borda-forte: 43 50 56;
+
+  --cor-gaveta: 21 28 33;
+  --cor-gaveta-clara: 39 50 57;
+
+  --cor-caneta: 27 63 156;
+  --cor-caneta-clara: 227 233 248;
+
+  --cor-carimbo: 168 35 27;
+  --cor-carimbo-clara: 248 231 229;
+
+  --cor-aprovado: 28 107 69;
+  --cor-aprovado-clara: 225 239 232;
+
+  --cor-mostarda: 133 95 14;
+  --cor-mostarda-clara: 247 238 215;
+
+  --fonte-titulo: 'Familjen Grotesk', system-ui, sans-serif;
+  --fonte-corpo: 'Instrument Sans', system-ui, sans-serif;
+  --fonte-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
 @layer base {
@@ -35,91 +59,81 @@
   }
 
   body {
-    background-color: var(--app-bg);
-    color: var(--text);
-    font-family: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: rgb(var(--cor-aco));
+    color: rgb(var(--cor-tinta));
+    font-family: var(--fonte-corpo);
+    font-size: 15px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
 
   h1,
   h2,
-  h3 {
-    letter-spacing: -0.02em;
+  h3,
+  h4 {
+    font-family: var(--fonte-titulo);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Contorno de foco visível em qualquer fundo, inclusive no aço escuro. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--cor-caneta));
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: rgb(var(--cor-caneta));
+    color: #fff;
   }
 }
 
 @layer components {
-  /* Superfícies: borda fina (hairline), sem sombra de template */
-  .card {
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    padding: 1.25rem;
+  .ficha {
+    @apply bg-ficha border border-borda;
   }
 
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-brand-700 hover:bg-brand-800
-           text-white text-sm font-medium px-4 py-2 rounded-md transition-colors
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-700
-           disabled:opacity-60 disabled:cursor-not-allowed;
+  .ficha-titulo {
+    @apply border-b border-pauta px-4 py-2.5 flex items-center justify-between gap-3;
   }
 
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50
-           text-gray-700 text-sm font-medium px-4 py-2 rounded-md
-           border border-gray-200 transition-colors
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-700;
+  /* Etiqueta datilografada: rótulo de seção, cabeçalho de tabela, aba. */
+  .etiqueta {
+    @apply font-mono text-[11px] uppercase tracking-[0.09em] text-grafite;
   }
 
-  .input {
-    background-color: var(--surface);
-    @apply w-full px-3 py-2 text-sm rounded-md border border-gray-300
-           transition-colors placeholder-gray-400
-           focus:outline-none focus:ring-1 focus:ring-brand-700 focus:border-brand-700;
+  .numero {
+    @apply font-mono tabular-nums;
   }
 
-  .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  .botao {
+    @apply inline-flex items-center justify-center gap-2 h-9 px-3.5 text-sm font-medium
+           border transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* Métrica: tipográfica, com fina régua de acento à esquerda
-     (sem o quadradinho de ícone colorido típico de template) */
-  .stat {
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    @apply relative overflow-hidden px-4 py-4 pl-5;
+  .botao-acao {
+    @apply botao bg-caneta border-caneta text-white hover:bg-[#16337e] hover:border-[#16337e];
   }
 
-  .stat::before {
-    content: '';
-    @apply absolute left-0 top-0 bottom-0 w-1 bg-brand-600;
+  .botao-neutro {
+    @apply botao bg-ficha border-borda-forte text-tinta hover:bg-aco-fundo;
   }
 
-  .stat-label {
-    @apply text-[11px] font-semibold uppercase tracking-wider text-gray-500;
+  .botao-discreto {
+    @apply botao border-transparent text-tinta-suave hover:bg-aco-fundo hover:text-tinta;
   }
 
-  .stat-value {
-    @apply mt-2 text-[26px] leading-none font-semibold text-gray-900 tabular-nums;
+  .campo {
+    @apply w-full h-9 px-3 bg-ficha border border-borda text-sm text-tinta
+           placeholder:text-grafite/70
+           focus:border-caneta focus:outline-none focus:ring-1 focus:ring-caneta;
   }
 
-  .stat-sub {
-    @apply mt-1.5 text-xs text-gray-500;
+  .campo-rotulo {
+    @apply block etiqueta mb-1.5 text-tinta-suave;
   }
 
-  .nav-link {
-    color: var(--sidebar-fg-dim);
-    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors;
-  }
-
-  .nav-link:hover {
-    color: var(--sidebar-fg);
-    background-color: var(--sidebar-active);
-  }
-
-  .nav-link-active {
-    color: #ffffff;
-    background-color: var(--sidebar-active);
+  .campo-erro {
+    @apply mt-1 text-xs text-carimbo;
   }
 }
