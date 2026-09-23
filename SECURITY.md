@@ -29,10 +29,20 @@ combinamos uma janela para correção e divulgação coordenada.
 - Upload com validação de MIME e tamanho; nomes de arquivo gerados pelo servidor.
 - Cabeçalhos de segurança HTTP aplicados na aplicação e reforçados no nginx.
 - `display_errors` e `expose_php` desabilitados; versões de stack não expostas.
-- Segredos apenas em `.env` (fora do versionamento).
+- Segredos apenas em `.env` (fora do versionamento) e, no Kubernetes, pelo
+  gerenciador de segredo do cluster: o manifesto versionado é um gabarito
+  vazio, e o conferidor do CI reprova se alguém gravar um valor ali.
+- Imagens de produção rodam com usuário sem privilégio, sem Composer e sem
+  Xdebug dentro.
+- Toda resposta leva `X-Request-Id`, que entra no log e permite investigar um
+  chamado sem procurar por horário.
+- Pedido de titular da LGPD atendido por rota própria, restrita a gerente e
+  administrador, com registro de autor e data. Ver [LGPD.md](LGPD.md).
 
 ## Recomendações de operação
 
 - Rodar `composer audit` e `npm audit` periodicamente e aplicar atualizações de segurança.
+- Conferir a sonda `/api/saude` no monitoramento: ela distingue banco fora de
+  cache fora, o que muda a urgência da madrugada.
 - Servir sempre atrás de HTTPS (o HSTS é emitido apenas sob conexão segura).
 - Revisar e rotacionar as credenciais de demonstração antes de qualquer uso real.

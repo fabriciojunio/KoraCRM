@@ -1,282 +1,124 @@
 # KoraCRM
 
+[![CI](https://github.com/fabriciojunio/KoraCRM/actions/workflows/ci.yml/badge.svg)](https://github.com/fabriciojunio/KoraCRM/actions/workflows/ci.yml)
 [![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)](https://php.net)
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com)
+[![Licença](https://img.shields.io/badge/licença-MIT-black)](LICENSE)
 
-CRM fullstack para gestão de leads, pipeline de vendas e relacionamento com clientes.
+CRM para equipe comercial pequena: lead, funil de vendas, tarefa e histórico de
+atendimento, com controle de acesso por perfil.
 
-**No ar:** [koracrm-frontend.vercel.app](https://koracrm-frontend.vercel.app) — só a
-interface. O Laravel não está publicado, então o que dá para ver é a navegação e as
-telas, não os dados.
-
----
-
-## Sobre
-
-O **KoraCRM** é um sistema web fullstack para gestão de **leads**, **pipeline de vendas (Kanban)**,
-**tarefas** e **relacionamento com clientes**, com painel de métricas e controle de acesso por perfil.
-
-Backend em Clean Architecture com Laravel 11, frontend React + TypeScript, testes unitários e de integração, CI/CD com GitHub Actions e deploy no EC2.
-
-### Módulos
-
-| Módulo | Descrição |
-|--------|-----------|
-| **Autenticação** | Login via token (Laravel Sanctum) com RBAC: `admin`, `gerente`, `vendedor` |
-| **Dashboard** | KPIs, taxa de conversão, funil de vendas e atividades recentes |
-| **Leads** | CRUD com filtros, busca, tags, histórico de ações e upload de arquivos |
-| **Pipeline Kanban** | Arrastar e soltar leads entre estágios (`novo → contato → proposta → ganho/perdido`) |
-| **Tarefas** | Tarefas vinculadas a leads, com prazo, prioridade e conclusão |
-| **Usuários** | Gestão da equipe (restrito a `admin`/`gerente`) |
-| **Auditoria** | Registro histórico de todas as ações sobre os leads |
+**No ar:** [koracrm-frontend.vercel.app](https://koracrm-frontend.vercel.app).
+Clique em **Entrar como demonstração**, sem cadastro. É só a interface: a API não está
+publicada, e a demonstração roda no próprio navegador com dados de exemplo.
+O roteiro de cinco minutos está em [docs/DEMONSTRACAO.md](docs/DEMONSTRACAO.md).
 
 ---
+
+## O que o sistema faz
+
+| Módulo | O que resolve |
+| --- | --- |
+| **Leads** | Ficha com contato, valor, origem e observações; busca e filtro por estágio |
+| **Funil** | Cinco estágios em guias, arrastando ou pelo seletor da ficha |
+| **Tarefas** | Vinculadas ao lead, com prazo, prioridade e marcação de atraso |
+| **Painel** | Números do funil, valor por estágio e os últimos movimentos com autor |
+| **Equipe** | Quem tem acesso e até onde vai cada perfil |
+| **Auditoria** | Toda alteração de lead gravada com autor, data e o que mudou |
+| **LGPD** | Acesso e exclusão dos dados pessoais do titular, sem perder o histórico |
+
+Duas regras de domínio que o sistema não deixa furar, e que têm teste dos dois
+lados: lead nasce sempre em `novo`, e lead em `ganho` ou `perdido` não volta
+para o funil.
 
 ## Stack
 
-| Camada | Tecnologias |
-|--------|-------------|
-| **Backend** | PHP 8.2 · Laravel 11 · Laravel Sanctum · Eloquent ORM |
-| **Banco / Cache** | MySQL 8.0 · Redis 7 (cache e filas) |
-| **Testes backend** | Pest PHP · PHPStan/Larastan · Laravel Pint |
-| **Documentação API** | L5-Swagger (OpenAPI) |
-| **Frontend** | React 18 · TypeScript 5 · Vite 5 · Tailwind CSS 3 |
-| **Estado / Forms** | TanStack React Query 5 · React Hook Form 7 · Zod |
-| **Testes frontend** | Vitest · React Testing Library · ESLint |
-| **Infra** | Docker · Docker Compose · Nginx |
-| **Cloud** | AWS S3 (uploads) · AWS EC2 (deploy) |
-| **CI/CD** | GitHub Actions |
+| Camada | O quê |
+| --- | --- |
+| **API** | PHP 8.2 · Laravel 11 · Sanctum · Eloquent |
+| **Banco e cache** | MySQL 8 · Redis 7 (cache e fila) |
+| **Interface** | React 18 · TypeScript 5 · Vite 5 · Tailwind 3 · React Query |
+| **Testes** | Pest · Vitest · Playwright · PHPStan/Larastan · Pint · ESLint |
+| **Infra** | Docker · Kubernetes · Nginx · S3 (anexos) |
 
----
+## Rodar
+
+```bash
+cp .env.example .env              # preencha as duas senhas
+cp backend/.env.example backend/.env
+docker compose up -d
+docker compose exec backend composer install
+docker compose exec backend php artisan key:generate
+docker compose exec backend php artisan migrate --seed
+```
+
+Interface em <http://localhost:3000>, API em <http://localhost/api>, Swagger em
+<http://localhost/api/documentation>, sonda em <http://localhost/api/saude>.
+As rotas estão listadas em [docs/API.md](docs/API.md).
+
+As contas de exemplo estão em [docs/DEMONSTRACAO.md](docs/DEMONSTRACAO.md).
+O `make` lista o resto dos comandos.
 
 ## Arquitetura
 
-O backend segue **Clean Architecture** com separação estrita de responsabilidades em 4 camadas:
+Monólito com quatro camadas no backend:
 
 ```
-Http Layer        →  Controllers · Form Requests · API Resources
-Application Layer  →  Services (casos de uso) · DTOs
-Domain Layer       →  Interfaces (contratos) · regras de negócio
-Infrastructure     →  Repositories (Eloquent)
+Http            Controllers · Form Requests · Resources · Middleware
+Application     Services (casos de uso) · DTOs
+Domain          Interfaces · regras de negócio
+Infrastructure  Repositories (Eloquent)
 ```
 
-**Design patterns aplicados:** Repository · Service Layer · DTO · Dependency Injection.
+A regra que sustenta tudo: **a camada de aplicação não conhece Eloquent**.
+`CriarLeadService` recebe um DTO e conversa com `LeadRepositoryInterface`; quem
+resolve a interface é o container. É o que permite testar caso de uso sem
+banco.
 
-> A interface `LeadRepositoryInterface` (Domain) é resolvida para `EloquentLeadRepository`
-> (Infrastructure) via container de DI no `AppServiceProvider`: os Services nunca
-> conhecem o Eloquent diretamente.
-
-A documentação técnica completa está em [`docs/documentacao_tecnica.md`](docs/documentacao_tecnica.md).
-
----
-
-## Pré-requisitos
-
-- **Docker** e **Docker Compose** instalados
-- Portas livres: `80`, `3000`, `3306`, `3307`, `6379`
-
----
-
-## Como rodar
-
-```bash
-# 1. Entrar na pasta do projeto
-cd koracrm
-
-# 2. Copiar as variáveis de ambiente
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-
-# 3. Subir todos os containers
-docker-compose up -d
-
-# 4. Instalar dependências do backend (aguarde o MySQL ficar saudável)
-docker-compose exec backend composer install
-
-# 5. Gerar a chave da aplicação
-docker-compose exec backend php artisan key:generate
-
-# 6. Rodar migrations e seeds
-docker-compose exec backend php artisan migrate --seed
-
-# 7. Instalar dependências do frontend
-docker-compose exec frontend npm install
-```
-
-### Acessos
-
-| Serviço | URL |
-|---------|-----|
-| Frontend | http://localhost:3000 |
-| API | http://localhost/api |
-| Documentação Swagger | http://localhost/api/documentation |
-
----
-
-## Credenciais de acesso
-
-Criadas automaticamente pelo seeder (`php artisan migrate --seed`):
-
-| Perfil | E-mail | Senha |
-|--------|--------|-------|
-| Admin | `admin@koracrm.com.br` | `admin123456` |
-| Gerente | `gerente@koracrm.com.br` | `gerente123456` |
-| Vendedor | `carlos@koracrm.com.br` | `vendedor123456` |
-| Vendedor | `ana@koracrm.com.br` | `vendedor123456` |
-
----
-
-## API
-
-Documentação interativa (Swagger UI): **http://localhost/api/documentation**
-
-### Principais endpoints
-
-**Autenticação**
-```
-POST   /api/auth/login              Login (e-mail + senha)
-POST   /api/auth/logout             Logout (invalida o token atual)
-GET    /api/auth/perfil             Dados do usuário autenticado
-```
-
-**Leads**
-```
-GET    /api/leads                   Lista com filtros e paginação
-POST   /api/leads                   Cria um lead
-GET    /api/leads/{id}              Detalhes do lead
-PUT    /api/leads/{id}              Atualiza o lead
-DELETE /api/leads/{id}              Exclui (soft delete)
-PATCH  /api/leads/{id}/estagio      Move o lead no pipeline
-GET    /api/leads/{id}/historico    Histórico de ações do lead
-POST   /api/leads/{id}/arquivos     Upload de arquivo anexo
-GET    /api/pipeline                Leads agrupados por estágio (Kanban)
-```
-
-**Tarefas**
-```
-GET    /api/tarefas                 Lista as tarefas do usuário
-POST   /api/tarefas                 Cria uma tarefa
-GET    /api/tarefas/{id}            Detalhes da tarefa
-PUT    /api/tarefas/{id}            Atualiza a tarefa
-DELETE /api/tarefas/{id}            Exclui (soft delete)
-PATCH  /api/tarefas/{id}/concluir   Marca como concluída
-```
-
-**Dashboard**
-```
-GET    /api/dashboard/metricas      KPIs e métricas gerais
-GET    /api/dashboard/atividades    Atividades recentes
-GET    /api/dashboard/funil         Dados do funil de conversão
-```
-
-**Usuários** *(restrito a `admin`/`gerente`)*
-```
-GET    /api/usuarios                Lista usuários
-POST   /api/usuarios                Cria usuário
-GET    /api/usuarios/{id}           Detalhes do usuário
-PUT    /api/usuarios/{id}           Atualiza usuário
-DELETE /api/usuarios/{id}           Desativa usuário
-```
-
----
+Detalhes em [docs/ARQUITETURA.md](docs/ARQUITETURA.md), e as decisões com o
+contexto de cada uma em [docs/adr/](docs/adr/).
 
 ## Testes
 
-### Backend: Pest PHP
-
 ```bash
-docker-compose exec backend php artisan test
-
-# Com cobertura mínima de 80%
-docker-compose exec backend vendor/bin/pest --coverage --min=80
+make testar        # Pest (81) e Vitest (15)
+make e2e           # Playwright (22, desktop e celular)
+make revisar       # Pint, PHPStan, ESLint, tipos
 ```
 
-Cobre testes **unitários** (Domain e Application, com mocks dos repositórios)
-e de **integração** (Feature: autenticação, leads, tarefas via HTTP).
+Três níveis: unidade para regra de domínio com repositório falso, integração
+para o caminho HTTP inteiro, e ponta a ponta no navegador sobre o modo de
+demonstração. O CI roda a bateria do backend também contra um MySQL 8 de
+verdade, porque produção não é SQLite.
 
-### Frontend: Vitest
-
-```bash
-docker-compose exec frontend npm test          # modo watch
-docker-compose exec frontend npx vitest run    # execução única
-docker-compose exec frontend npm run test:coverage
-```
-
-### Qualidade de código
-
-```bash
-# Backend
-docker-compose exec backend vendor/bin/pint --test     # formatação
-docker-compose exec backend vendor/bin/phpstan analyse # análise estática
-
-# Frontend
-docker-compose exec frontend npm run lint              # ESLint
-docker-compose exec frontend npm run type-check        # TypeScript
-```
-
----
-
-## Estrutura do projeto
-
-```
-koracrm/
-├── backend/                     # API Laravel 11
-│   ├── app/
-│   │   ├── Application/          # Services e DTOs (casos de uso)
-│   │   ├── Domain/              # Interfaces e regras de negócio
-│   │   ├── Http/                # Controllers, Requests, Resources
-│   │   ├── Infrastructure/      # Repositories (Eloquent)
-│   │   └── Models/              # Entidades Eloquent
-│   ├── database/
-│   │   ├── migrations/
-│   │   ├── seeders/
-│   │   └── factories/
-│   └── tests/
-│       ├── Unit/                # Domain + Application
-│       └── Feature/             # Endpoints HTTP
-├── frontend/                    # SPA React + TypeScript
-│   └── src/
-│       ├── app/                 # Páginas (dashboard, leads, pipeline, tarefas)
-│       ├── components/          # Componentes compartilhados (Layout)
-│       ├── features/            # Módulos por funcionalidade
-│       ├── hooks/               # useAuth, useLeads…
-│       ├── lib/                 # Cliente Axios
-│       └── types/               # Tipos TypeScript
-├── docker/                      # Dockerfiles e configs (nginx, php, mysql)
-├── docs/                        # Documentação técnica
-├── .github/workflows/           # Pipeline CI/CD
-└── docker-compose.yml
-```
-
----
-
-## CI/CD
-
-Pipeline em **GitHub Actions** ([`.github/workflows/pipeline.yml`](.github/workflows/pipeline.yml)):
-
-1. **Lint / análise estática**: Pint + PHPStan (backend) · ESLint + `tsc` (frontend)
-2. **Testes**: Pest com cobertura (backend) · Vitest com cobertura (frontend) → Codecov
-3. **Build**: imagens Docker de backend e frontend (push para Docker Hub, branch `main`)
-4. **Deploy**: deploy via SSH no EC2 + migrations automáticas (branch `main`)
-
----
+Foi um teste de ponta a ponta que achou o defeito da ficha que não gravava
+quando a origem ficava em branco.
 
 ## Segurança
 
-- Autenticação por token (Laravel Sanctum) com expiração de 30 dias
-- RBAC por perfil (`admin`/`gerente`/`vendedor`) via *Gate* de autorização
-- Rate limiting: **5 tentativas/min** no login, **60 req/min** nas demais rotas
-- Validação de toda entrada via Form Requests; saída via API Resources
-- Senhas com bcrypt
-- Soft delete em leads e tarefas
-- Upload com validação de MIME e limite de 10 MB; URLs assinadas no S3 (expiração de 1h)
-- Variáveis sensíveis apenas em `.env`
+Token do Sanctum com expiração, perfis (`admin`/`gerente`/`vendedor`) em
+policies que negam por padrão, limite de tentativa no login, validação de toda
+entrada, senha com bcrypt, cabeçalho de segurança e política de conteúdo na
+API e no Nginx, anexo com validação de tipo e tamanho e URL assinada de uma
+hora no S3. Imagens de produção rodam sem privilégio.
 
----
+O que fazer ao encontrar uma falha: [SECURITY.md](SECURITY.md).
+Dado pessoal, base legal e direitos do titular: [LGPD.md](LGPD.md).
+
+## Visual
+
+A referência é a caixa de fichas do escritório comercial: chapa de aço, ficha
+branca pautada, guia de cartolina separando os estágios e etiqueta
+datilografada. Cor forte só aparece carregando estado. O guia, com o que ficou
+de fora de propósito, está em [docs/IDENTIDADE_VISUAL.md](docs/IDENTIDADE_VISUAL.md).
+
+## Operação
+
+[docs/IMPLANTACAO.md](docs/IMPLANTACAO.md) para subir, inclusive no Kubernetes
+e com o S3 local do LocalStack. [docs/RUNBOOK.md](docs/RUNBOOK.md) para quando
+alguma coisa vai mal com o sistema no ar.
 
 ## Licença
 
-Distribuído sob a licença **MIT**.
+MIT. Ver [LICENSE](LICENSE).
