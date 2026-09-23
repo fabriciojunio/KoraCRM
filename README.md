@@ -82,7 +82,7 @@ contexto de cada uma em [docs/adr/](docs/adr/).
 ## Testes
 
 ```bash
-make testar        # Pest (81) e Vitest (15)
+make testar        # Pest (126) e Vitest (39)
 make e2e           # Playwright (22, desktop e celular)
 make revisar       # Pint, PHPStan, ESLint, tipos
 ```
@@ -92,8 +92,12 @@ para o caminho HTTP inteiro, e ponta a ponta no navegador sobre o modo de
 demonstração. O CI roda a bateria do backend também contra um MySQL 8 de
 verdade, porque produção não é SQLite.
 
-Foi um teste de ponta a ponta que achou o defeito da ficha que não gravava
-quando a origem ficava em branco.
+A cobertura do backend é de 90%, e o CI reprova abaixo de 85%.
+
+Dois defeitos foram achados por teste, não por uso: a ficha que não gravava
+quando a origem ficava em branco, pego pelo Playwright, e a data sem hora que
+voltava um dia no fuso do Brasil, fazendo tarefa com prazo para hoje nascer
+atrasada.
 
 ## Segurança
 

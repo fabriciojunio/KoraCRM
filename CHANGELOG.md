@@ -33,6 +33,9 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 ### Corrigido
 
 - A ficha nova não gravava quando a origem ficava em branco, e não dizia por quê.
+- Data sem hora era lida como UTC e voltava um dia no Brasil: tarefa com prazo
+  para hoje aparecia atrasada.
+- O Vitest tentava rodar os arquivos do Playwright e quebrava a bateria.
 - O painel mostrava número velho por até cinco minutos depois de mover um lead.
 - As imagens de produção não construíam: a do frontend não instalava o Vite e
   procurava um nginx.conf inexistente; a do backend rodava como root.
