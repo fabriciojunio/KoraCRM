@@ -23,6 +23,10 @@ class LeadPolicy
 
     public function update(Usuario $usuario, Lead $lead): bool
     {
+        if ($lead->anonimizado_em !== null) {
+            return false;
+        }
+
         if ($usuario->isGerente()) {
             return true;
         }
@@ -42,6 +46,10 @@ class LeadPolicy
 
     public function upload(Usuario $usuario, Lead $lead): bool
     {
+        if ($lead->anonimizado_em !== null) {
+            return false;
+        }
+
         if ($usuario->isGerente()) {
             return true;
         }

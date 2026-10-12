@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Usuario;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 function contaDePerfil(string $perfil, string $email): array
@@ -132,15 +133,50 @@ test('perfil inválido é recusado', function () {
     ])->assertStatus(422)->assertJsonValidationErrors('perfil');
 });
 
-test('gerente atualiza o nome e o perfil', function () {
+test('gerente atualiza o nome de um vendedor sem elevar seu perfil', function () {
     [, $token] = contaDePerfil('gerente', 'gerente.atualiza@koracrm.com.br');
     [$vendedor] = contaDePerfil('vendedor', 'vendedor.atualiza@koracrm.com.br');
 
     $this->withToken($token)
-        ->putJson("/api/usuarios/{$vendedor->id}", ['nome' => 'Nome Trocado', 'perfil' => 'gerente'])
+        ->putJson("/api/usuarios/{$vendedor->id}", ['nome' => 'Nome Trocado'])
         ->assertOk()
         ->assertJsonPath('nome', 'Nome Trocado')
-        ->assertJsonPath('perfil', 'gerente');
+        ->assertJsonPath('perfil', 'vendedor');
+});
+
+test('gerente não cria administrador nem promove vendedor', function () {
+    [, $token] = contaDePerfil('gerente', 'gerente.permissoes@koracrm.com.br');
+    [$vendedor] = contaDePerfil('vendedor', 'vendedor.permissoes@koracrm.com.br');
+
+    $this->withToken($token)->postJson('/api/usuarios', [
+        'nome' => 'Administrador indevido',
+        'email' => 'indevido@koracrm.com.br',
+        'senha' => 'SenhaForte123',
+        'senha_confirmation' => 'SenhaForte123',
+        'perfil' => 'admin',
+    ])->assertForbidden();
+
+    $this->withToken($token)
+        ->putJson("/api/usuarios/{$vendedor->id}", ['perfil' => 'gerente'])
+        ->assertForbidden();
+
+    expect(Usuario::where('email', 'indevido@koracrm.com.br')->exists())->toBeFalse()
+        ->and($vendedor->fresh()->perfil)->toBe('vendedor');
+});
+
+test('gerente não edita, redefine senha nem desativa administrador', function () {
+    [, $token] = contaDePerfil('gerente', 'gerente.admin@koracrm.com.br');
+    [$admin] = contaDePerfil('admin', 'admin.protegido@koracrm.com.br');
+    $senhaAntes = $admin->senha;
+
+    $this->withToken($token)->putJson("/api/usuarios/{$admin->id}", [
+        'senha' => 'OutraSenha123',
+        'senha_confirmation' => 'OutraSenha123',
+    ])->assertForbidden();
+    $this->withToken($token)->deleteJson("/api/usuarios/{$admin->id}")->assertForbidden();
+
+    expect($admin->fresh()->senha)->toBe($senhaAntes)
+        ->and($admin->fresh()->ativo)->toBeTrue();
 });
 
 test('atualizar sem mandar senha não apaga a senha existente', function () {
@@ -183,6 +219,39 @@ test('desativar usuário mantém o registro e marca como inativo', function () {
         ->assertJsonPath('mensagem', 'Usuário desativado com sucesso.');
 
     expect($vendedor->fresh()->ativo)->toBeFalse();
+});
+
+test('desativação revoga token já emitido', function () {
+    [, $adminToken] = contaDePerfil('admin', 'admin.revoga@koracrm.com.br');
+    [$vendedor, $token] = contaDePerfil('vendedor', 'vendedor.revoga@koracrm.com.br');
+
+    $this->withToken($adminToken)->deleteJson("/api/usuarios/{$vendedor->id}")->assertOk();
+
+    expect($vendedor->tokens()->count())->toBe(0);
+    Auth::forgetGuards();
+    $this->withToken($token)->getJson('/api/auth/perfil')->assertUnauthorized();
+});
+
+test('conta marcada inativa diretamente no banco não usa token antigo', function () {
+    [$vendedor, $token] = contaDePerfil('vendedor', 'vendedor.inativo@koracrm.com.br');
+    $vendedor->update(['ativo' => false]);
+
+    $this->withToken($token)->getJson('/api/auth/perfil')->assertUnauthorized();
+    $this->withToken($token)->getJson('/api/leads')->assertUnauthorized();
+});
+
+test('troca de senha administrativa revoga tokens anteriores', function () {
+    [, $adminToken] = contaDePerfil('admin', 'admin.senha.revoga@koracrm.com.br');
+    [$vendedor, $token] = contaDePerfil('vendedor', 'vendedor.senha.revoga@koracrm.com.br');
+
+    $this->withToken($adminToken)->putJson("/api/usuarios/{$vendedor->id}", [
+        'senha' => 'OutraSenha123',
+        'senha_confirmation' => 'OutraSenha123',
+    ])->assertOk();
+
+    expect($vendedor->tokens()->count())->toBe(0);
+    Auth::forgetGuards();
+    $this->withToken($token)->getJson('/api/auth/perfil')->assertUnauthorized();
 });
 
 test('ninguém desativa a própria conta', function () {

@@ -23,35 +23,62 @@ class AnonimizarLeadService
 
     public function executar(Lead $lead, int $solicitadoPor): Lead
     {
-        if ($lead->anonimizado_em !== null) {
-            return $lead;
-        }
-
         return DB::transaction(function () use ($lead, $solicitadoPor) {
+            $lead = Lead::query()->lockForUpdate()->findOrFail($lead->id);
+            $primeiroPedido = $lead->anonimizado_em === null;
+
             $lead->forceFill([
                 'nome' => 'Titular anonimizado',
                 'email' => null,
                 'telefone' => null,
+                'empresa' => null,
                 'cargo' => null,
                 'observacoes' => null,
                 'tags' => [],
-                'anonimizado_em' => now(),
+                'anonimizado_em' => $lead->anonimizado_em ?? now(),
             ])->save();
+
+            // Um pedido repetido também limpa registros de versões anteriores.
+            foreach ($lead->historico()->get() as $registro) {
+                $registro->forceFill([
+                    'descricao' => 'Registro comercial preservado após anonimização',
+                    'dados_anteriores' => $this->dadosComerciais($registro->dados_anteriores),
+                    'dados_novos' => $this->dadosComerciais($registro->dados_novos),
+                ])->save();
+            }
+
+            foreach ($lead->tarefas()->withTrashed()->get() as $tarefa) {
+                $tarefa->forceFill([
+                    'titulo' => 'Tarefa de lead anonimizado',
+                    'descricao' => null,
+                ])->save();
+            }
 
             foreach ($lead->arquivos()->get() as $arquivo) {
                 Storage::disk($arquivo->disco)->delete($arquivo->caminho);
                 $arquivo->delete();
             }
 
-            $this->historico->registrar(
-                leadId: $lead->id,
-                usuarioId: $solicitadoPor,
-                tipo: 'anonimizacao',
-                descricao: 'Dados pessoais removidos a pedido do titular (LGPD)',
-            );
+            if ($primeiroPedido) {
+                $this->historico->registrar(
+                    leadId: $lead->id,
+                    usuarioId: $solicitadoPor,
+                    tipo: 'anonimizacao',
+                    descricao: 'Dados pessoais removidos a pedido do titular (LGPD)',
+                );
+            }
 
             return $lead->fresh();
         });
+    }
+
+    private function dadosComerciais(?array $dados): ?array
+    {
+        if ($dados === null) {
+            return null;
+        }
+
+        return array_intersect_key($dados, array_flip(['estagio', 'valor_estimado', 'data_fechamento']));
     }
 
     /**
@@ -71,6 +98,11 @@ class AnonimizarLeadService
                 'tipo' => $registro->tipo,
                 'descricao' => $registro->descricao,
                 'data' => $registro->created_at->toISOString(),
+            ]),
+            'tarefas' => $lead->tarefas()->get()->map(fn ($tarefa) => [
+                'titulo' => $tarefa->titulo,
+                'descricao' => $tarefa->descricao,
+                'data' => $tarefa->created_at->toISOString(),
             ]),
             'arquivos' => $lead->arquivos()->get()->map(fn ($arquivo) => [
                 'nome' => $arquivo->nome_original,
