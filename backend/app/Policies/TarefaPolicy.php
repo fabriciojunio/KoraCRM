@@ -18,6 +18,10 @@ class TarefaPolicy
 
     public function update(Usuario $usuario, Tarefa $tarefa): bool
     {
+        if ($tarefa->lead?->anonimizado_em !== null) {
+            return false;
+        }
+
         if ($usuario->isGerente()) {
             return true;
         }

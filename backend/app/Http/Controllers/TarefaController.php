@@ -95,6 +95,9 @@ class TarefaController extends Controller
         // Impede vincular tarefa a lead que o usuário não pode acessar (IDOR).
         $lead = Lead::findOrFail($dados['lead_id']);
         $this->authorize('view', $lead);
+        if ($lead->anonimizado_em !== null) {
+            return response()->json(['mensagem' => 'Lead anonimizado não aceita novas tarefas.'], 409);
+        }
 
         // Vendedores só podem atribuir tarefas a si mesmos.
         $responsavelId = $dados['responsavel_id'] ?? $request->user()->id;

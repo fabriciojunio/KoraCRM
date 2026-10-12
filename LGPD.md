@@ -8,7 +8,7 @@ pedido de titular.
 O sistema guarda dado de duas categorias de pessoa:
 
 **O lead**, que é a pessoa do outro lado da negociação: nome, e-mail,
-telefone, empresa, cargo e o que o vendedor anotou em observações. É dado de
+telefone, empresa, cargo, observações, histórico e textos das tarefas. É dado de
 contato profissional, coletado no exercício da atividade comercial.
 
 **O usuário**, que é quem trabalha na empresa: nome, e-mail, perfil de acesso
@@ -36,16 +36,18 @@ DELETE /api/leads/{id}/dados-pessoais    exclusão
 ```
 
 O acesso devolve em JSON tudo que o sistema guarda sobre a pessoa, incluindo o
-histórico de interações e a lista de anexos.
+histórico de interações, tarefas e a lista de anexos.
 
-A exclusão **anonimiza**: apaga nome, e-mail, telefone, cargo, observações,
-tags e os arquivos anexados, no banco e no disco. Mantém estágio, valor,
-datas e histórico, que são dado da empresa sobre o próprio negócio. A linha
+A exclusão **anonimiza**: apaga nome, e-mail, telefone, empresa, cargo,
+observações, tags, textos do histórico e das tarefas e os arquivos anexados,
+no banco e no disco. Mantém estágio, valor, datas e eventos do histórico,
+que são dados da empresa sobre o próprio negócio. A linha
 fica marcada com `anonimizado_em`, e o pedido é gravado no histórico com autor
 e data. O raciocínio está no [ADR 3](docs/adr/0003-anonimizar-em-vez-de-apagar.md).
 
 Correção de dado é o `PUT /api/leads/{id}` de sempre, e fica registrada no
-histórico.
+histórico. Um lead anonimizado não aceita novas alterações de ficha, tarefa ou
+anexo que possam reintroduzir dados pessoais.
 
 ## Retenção
 

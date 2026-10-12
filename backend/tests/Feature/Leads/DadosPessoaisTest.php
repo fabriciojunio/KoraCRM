@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\HistoricoLead;
 use App\Models\Lead;
+use App\Models\Tarefa;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Hash;
 
@@ -42,7 +44,7 @@ test('o titular consegue ver tudo que o sistema guarda sobre ele', function () {
         ->assertOk()
         ->assertJsonPath('lead.nome', 'Marina Aguiar')
         ->assertJsonPath('lead.email', 'marina@empresa.com.br')
-        ->assertJsonStructure(['lead', 'aberto_em', 'historico', 'arquivos']);
+        ->assertJsonStructure(['lead', 'aberto_em', 'historico', 'tarefas', 'arquivos']);
 });
 
 test('anonimizar apaga o dado pessoal e mantém o valor fechado', function () {
@@ -59,11 +61,49 @@ test('anonimizar apaga o dado pessoal e mantém o valor fechado', function () {
     expect($lead->nome)->toBe('Titular anonimizado')
         ->and($lead->email)->toBeNull()
         ->and($lead->telefone)->toBeNull()
+        ->and($lead->empresa)->toBeNull()
         ->and($lead->cargo)->toBeNull()
         ->and($lead->observacoes)->toBeNull()
         ->and($lead->anonimizado_em)->not->toBeNull()
         ->and((float) $lead->valor_estimado)->toBe(18500.0)
         ->and($lead->estagio)->toBe('ganho');
+});
+
+test('anonimização limpa histórico e tarefas sem perder o valor comercial', function () {
+    [$gerente, $token] = contaComPerfil('gerente', 'gerente.rastro@koracrm.com.br');
+    $lead = leadComDadoPessoal($gerente);
+    $historico = HistoricoLead::create([
+        'lead_id' => $lead->id,
+        'usuario_id' => $gerente->id,
+        'tipo' => 'comentario',
+        'descricao' => 'Ligar para Marina no telefone 14 99999-0000',
+        'dados_anteriores' => ['nome' => 'Marina Aguiar', 'estagio' => 'novo'],
+        'dados_novos' => ['email' => 'marina@empresa.com.br', 'valor_estimado' => 18500],
+        'created_at' => now(),
+    ]);
+    $tarefa = Tarefa::create([
+        'lead_id' => $lead->id,
+        'responsavel_id' => $gerente->id,
+        'titulo' => 'Telefonar para Marina Aguiar',
+        'descricao' => 'E-mail marina@empresa.com.br',
+    ]);
+
+    $this->withToken($token)->deleteJson("/api/leads/{$lead->id}/dados-pessoais")->assertOk();
+
+    expect($historico->fresh()->descricao)->not->toContain('Marina')
+        ->and($historico->fresh()->dados_anteriores)->toBe(['estagio' => 'novo'])
+        ->and($historico->fresh()->dados_novos)->toBe(['valor_estimado' => 18500])
+        ->and($tarefa->fresh()->titulo)->not->toContain('Marina')
+        ->and($tarefa->fresh()->descricao)->toBeNull()
+        ->and((float) $lead->fresh()->valor_estimado)->toBe(18500.0);
+
+    $this->withToken($token)->putJson("/api/leads/{$lead->id}", ['nome' => 'Marina de novo'])
+        ->assertForbidden();
+    $this->withToken($token)->putJson("/api/tarefas/{$tarefa->id}", ['descricao' => 'Marina de novo'])
+        ->assertForbidden();
+    $this->withToken($token)->postJson('/api/tarefas', [
+        'titulo' => 'Marina de novo', 'lead_id' => $lead->id,
+    ])->assertStatus(409);
 });
 
 test('a anonimização fica registrada no histórico do lead', function () {
