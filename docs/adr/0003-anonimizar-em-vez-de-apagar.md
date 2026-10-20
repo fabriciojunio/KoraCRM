@@ -9,9 +9,11 @@ literal seria `DELETE FROM leads`.
 
 ## Decisão
 
-Apagar o que identifica a pessoa (nome, e-mail, telefone, cargo, observações e
-os anexos, no banco e no disco) e manter o registro comercial: estágio, valor,
-datas e histórico. A linha fica marcada com `anonimizado_em`.
+Apagar o que identifica a pessoa (nome, e-mail, telefone, empresa, cargo,
+observações, textos do histórico e das tarefas e anexos, no banco e no disco)
+e manter o registro comercial: estágio, valor, datas e tipos de evento do
+histórico. Os registros antigos recebem apenas os campos comerciais de uma
+lista permitida. A linha fica marcada com `anonimizado_em`.
 
 ## Consequências
 
@@ -22,8 +24,8 @@ não dado do titular.
 O campo de observações vai junto porque é onde alguém anota "ligar no celular
 dele, 14 99999-0000". Texto livre é o lugar onde dado pessoal se esconde.
 
-Um pedido repetido não sobrescreve a data do primeiro: o registro do
-atendimento é a prova de que a empresa cumpriu, e a data importa.
+Um pedido repetido não sobrescreve a data do primeiro e limpa qualquer dado
+remanescente em registros antigos.
 
 A operação é restrita a gerente e administrador, e fica gravada no histórico
 com autor e data.

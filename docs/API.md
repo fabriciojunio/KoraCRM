@@ -66,6 +66,9 @@ GET    /dashboard/funil              contagem por estágio
 ## Usuários
 
 Restrito a `admin` e `gerente`, pelo gate `gerenciar-usuarios`.
+Gerentes podem criar e alterar apenas vendedores; só administradores concedem
+perfis elevados ou alteram outros administradores. Desativação e troca de
+senha revogam os tokens existentes.
 
 ```
 GET    /usuarios
