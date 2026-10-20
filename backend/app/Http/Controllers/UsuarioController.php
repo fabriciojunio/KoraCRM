@@ -72,6 +72,10 @@ class UsuarioController extends Controller
             'perfil.in' => 'Perfil inválido.',
         ]);
 
+        if ($request->user()->perfil !== 'admin' && $dados['perfil'] !== 'vendedor') {
+            return response()->json(['mensagem' => 'Gerentes só podem criar vendedores.'], 403);
+        }
+
         $usuario = Usuario::create([
             'nome' => $dados['nome'],
             'email' => $dados['email'],
@@ -100,6 +104,10 @@ class UsuarioController extends Controller
             return response()->json(['mensagem' => 'Usuário não encontrado.'], 404);
         }
 
+        if ($request->user()->perfil !== 'admin' && $usuario->perfil !== 'vendedor') {
+            return response()->json(['mensagem' => 'Gerentes só podem alterar vendedores.'], 403);
+        }
+
         $dados = $request->validate([
             'nome' => ['sometimes', 'string', 'max:100'],
             'email' => ['sometimes', 'email', 'max:150', Rule::unique('usuarios')->ignore($id)],
@@ -108,6 +116,16 @@ class UsuarioController extends Controller
             'senha' => ['nullable', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
         ]);
 
+        if ($request->user()->perfil !== 'admin' && isset($dados['perfil']) && $dados['perfil'] !== 'vendedor') {
+            return response()->json(['mensagem' => 'Gerentes não podem conceder acesso de gerente ou administrador.'], 403);
+        }
+
+        if ($request->user()->id === $id &&
+            ((isset($dados['ativo']) && ! $dados['ativo']) ||
+                (isset($dados['perfil']) && $dados['perfil'] !== 'admin'))) {
+            return response()->json(['mensagem' => 'Você não pode remover seu próprio acesso.'], 403);
+        }
+
         if (! empty($dados['senha'])) {
             $dados['senha'] = Hash::make($dados['senha']);
         } else {
@@ -115,6 +133,11 @@ class UsuarioController extends Controller
         }
 
         $usuario->update($dados);
+
+        if (array_key_exists('senha', $dados) || array_key_exists('perfil', $dados) ||
+            (array_key_exists('ativo', $dados) && ! $dados['ativo'])) {
+            $usuario->tokens()->delete();
+        }
 
         return response()->json($usuario->fresh()->only(['id', 'nome', 'email', 'perfil', 'ativo']));
     }
@@ -139,7 +162,12 @@ class UsuarioController extends Controller
             return response()->json(['mensagem' => 'Usuário não encontrado.'], 404);
         }
 
+        if ($request->user()->perfil !== 'admin' && $usuario->perfil !== 'vendedor') {
+            return response()->json(['mensagem' => 'Gerentes só podem desativar vendedores.'], 403);
+        }
+
         $usuario->update(['ativo' => false]);
+        $usuario->tokens()->delete();
 
         return response()->json(['mensagem' => 'Usuário desativado com sucesso.']);
     }
