@@ -5,7 +5,7 @@ name: CI
 # lint, análise estática e teste com cobertura.
 on:
   push:
-    branches: [main]
+    branches: ["produção", "homologação"]
   pull_request:
 
 concurrency:
