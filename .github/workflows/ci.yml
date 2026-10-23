@@ -97,7 +97,7 @@ jobs:
         run: vendor/bin/pest
 
   frontend:
-    name: Frontend (Node 20)
+    name: Frontend (Node 24)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
