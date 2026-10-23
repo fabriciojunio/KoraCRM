@@ -7,7 +7,28 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $nome
+ * @property string|null $email
+ * @property string|null $telefone
+ * @property string|null $empresa
+ * @property string|null $cargo
+ * @property string $estagio
+ * @property numeric-string|float $valor_estimado
+ * @property string|null $origem
+ * @property string|null $observacoes
+ * @property array<int, string>|null $tags
+ * @property int|null $responsavel_id
+ * @property int|null $criado_por
+ * @property Carbon|null $data_fechamento
+ * @property Carbon|null $anonimizado_em
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
+ */
 class Lead extends Model
 {
     use HasFactory, SoftDeletes;
@@ -42,27 +63,32 @@ class Lead extends Model
 
     public const ESTAGIOS_FECHADOS = ['ganho', 'perdido'];
 
+    /** @return BelongsTo<Usuario, $this> */
     public function responsavel(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'responsavel_id');
     }
 
+    /** @return BelongsTo<Usuario, $this> */
     public function criador(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'criado_por');
     }
 
+    /** @return HasMany<Tarefa, $this> */
     public function tarefas(): HasMany
     {
         return $this->hasMany(Tarefa::class, 'lead_id');
     }
 
+    /** @return HasMany<HistoricoLead, $this> */
     public function historico(): HasMany
     {
         return $this->hasMany(HistoricoLead::class, 'lead_id')
             ->orderByDesc('created_at');
     }
 
+    /** @return HasMany<Arquivo, $this> */
     public function arquivos(): HasMany
     {
         return $this->hasMany(Arquivo::class, 'lead_id');

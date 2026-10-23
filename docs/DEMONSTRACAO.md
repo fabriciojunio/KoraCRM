@@ -41,15 +41,18 @@ leva três comandos.
 
 ## Contas do ambiente local
 
-Criadas pelo `php artisan migrate --seed`. São de exemplo e não existem em
-lugar nenhum publicado:
+As contas são criadas por `php artisan migrate --seed`. O seeder não usa senhas
+fixas: por padrão, gera uma senha aleatória forte por perfil e a mostra uma vez
+no console. Guarde-a ao executar o seed. Para escolher senhas em ambiente local,
+defina `SEED_ADMIN_PASSWORD`, `SEED_GERENTE_PASSWORD` e `SEED_VENDEDOR_PASSWORD`
+no `backend/.env` antes de criar as contas.
 
-| Perfil | E-mail | Senha |
-| --- | --- | --- |
-| Administrador | `admin@koracrm.com.br` | `admin123456` |
-| Gerente | `gerente@koracrm.com.br` | `gerente123456` |
-| Vendedor | `carlos@koracrm.com.br` | `vendedor123456` |
-| Vendedor | `ana@koracrm.com.br` | `vendedor123456` |
+| Perfil | E-mail |
+| --- | --- |
+| Administrador | `admin@koracrm.com.br` |
+| Gerente | `gerente@koracrm.com.br` |
+| Vendedor | `carlos@koracrm.com.br` |
+| Vendedor | `ana@koracrm.com.br` |
 
-Para ver a diferença entre perfis, entre como `carlos` e repare que a guia
-Equipe some e a lista de leads encolhe para as fichas dele.
+Para ver a diferença entre perfis, entre com a conta de vendedor criada para o
+ambiente local e repare que a guia Equipe some e a lista de leads encolhe.

@@ -3,6 +3,7 @@
 namespace App\Application\Services;
 
 use App\Models\Lead;
+use App\Models\Tarefa;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,7 +48,7 @@ class AnonimizarLeadService
                 ])->save();
             }
 
-            foreach ($lead->tarefas()->withTrashed()->get() as $tarefa) {
+            foreach (Tarefa::withTrashed()->where('lead_id', $lead->id)->get() as $tarefa) {
                 $tarefa->forceFill([
                     'titulo' => 'Tarefa de lead anonimizado',
                     'descricao' => null,
@@ -93,7 +94,7 @@ class AnonimizarLeadService
                 'id', 'nome', 'email', 'telefone', 'empresa', 'cargo',
                 'origem', 'observacoes', 'tags', 'anonimizado_em',
             ]),
-            'aberto_em' => $lead->created_at?->toISOString(),
+            'aberto_em' => $lead->created_at->toISOString(),
             'historico' => $lead->historico()->get()->map(fn ($registro) => [
                 'tipo' => $registro->tipo,
                 'descricao' => $registro->descricao,
