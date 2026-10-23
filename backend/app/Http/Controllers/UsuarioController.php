@@ -64,7 +64,6 @@ class UsuarioController extends Controller
         $dados = $request->validate([
             'nome' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email:filter', 'max:150', 'unique:usuarios,email'],
-)
             'senha' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],
             'perfil' => ['required', Rule::in(['admin', 'gerente', 'vendedor'])],
         ], [
@@ -112,7 +111,6 @@ class UsuarioController extends Controller
         $dados = $request->validate([
             'nome' => ['sometimes', 'string', 'max:100'],
             'email' => ['sometimes', 'email:filter', 'max:150', Rule::unique('usuarios')->ignore($id)],
-)
             'perfil' => ['sometimes', Rule::in(['admin', 'gerente', 'vendedor'])],
             'ativo' => ['sometimes', 'boolean'],
             'senha' => ['nullable', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()],

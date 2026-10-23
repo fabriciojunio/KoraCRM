@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
 /*
   As cores são canais RGB soltos, não hexadecimal: é o formato que deixa o
@@ -98,31 +97,33 @@
   }
 
   /* Etiqueta datilografada: rótulo de seção, cabeçalho de tabela, aba. */
-  .etiqueta {
-    @apply font-mono text-[11px] uppercase tracking-[0.09em] text-grafite;
-  }
-
   .numero {
     @apply font-mono tabular-nums;
   }
+}
 
-  .botao {
+@utility etiqueta {
+  @apply font-mono text-[11px] uppercase tracking-[0.09em] text-grafite;
+}
+
+@utility botao {
     @apply inline-flex items-center justify-center gap-2 h-9 px-3.5 text-sm font-medium
            border transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  .botao-acao {
+@utility botao-acao {
     @apply botao bg-caneta border-caneta text-white hover:bg-[#16337e] hover:border-[#16337e];
   }
 
-  .botao-neutro {
+@utility botao-neutro {
     @apply botao bg-ficha border-borda-forte text-tinta hover:bg-aco-fundo;
   }
 
-  .botao-discreto {
+@utility botao-discreto {
     @apply botao border-transparent text-tinta-suave hover:bg-aco-fundo hover:text-tinta;
   }
 
+@layer components {
   .campo {
     @apply w-full h-9 px-3 bg-ficha border border-borda text-sm text-tinta
            placeholder:text-grafite/70

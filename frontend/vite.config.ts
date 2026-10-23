@@ -1,26 +1,33 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
-import path from 'path'
+import tailwindcss from '@tailwindcss/vite'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const rootDir = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': resolve(rootDir, './src'),
     },
-  },
-  esbuild: {
-    drop: ['console', 'debugger'],
   },
   build: {
     sourcemap: false,
-    rollupOptions: {
+    minify: 'oxc',
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-router': ['react-router-dom'],
-          'vendor-query': ['@tanstack/react-query'],
+        minify: {
+          compress: { dropConsole: true, dropDebugger: true },
+        },
+        codeSplitting: {
+          groups: [
+            { name: 'vendor-react', test: /node_modules[\\/]react(?:-dom)?[\\/]/, priority: 20 },
+            { name: 'vendor-router', test: /node_modules[\\/]react-router(?:-dom)?[\\/]/, priority: 10 },
+            { name: 'vendor-query', test: /node_modules[\\/]@tanstack[\\/]react-query[\\/]/, priority: 10 },
+          ],
         },
       },
     },

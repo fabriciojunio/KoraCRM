@@ -4,8 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property int $id
+ * @property int $lead_id
+ * @property string $nome_original
+ * @property string $caminho
+ * @property string $disco
+ * @property int $tamanho
+ * @property string $mime_type
+ * @property int $enviado_por
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ */
 class Arquivo extends Model
 {
     protected $table = 'arquivos';
@@ -37,11 +50,13 @@ class Arquivo extends Model
 
     public const TAMANHO_MAXIMO = 10 * 1024 * 1024;
 
+    /** @return BelongsTo<Lead, $this> */
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class, 'lead_id');
     }
 
+    /** @return BelongsTo<Usuario, $this> */
     public function enviador(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'enviado_por');

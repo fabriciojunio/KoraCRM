@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-node@v4
         if: steps.credencial.outputs.existe == 'sim'
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Publicar
         if: steps.credencial.outputs.existe == 'sim'

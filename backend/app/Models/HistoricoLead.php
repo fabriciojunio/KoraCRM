@@ -4,7 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $lead_id
+ * @property int|null $usuario_id
+ * @property string $tipo
+ * @property string $descricao
+ * @property array<string, mixed>|null $dados_anteriores
+ * @property array<string, mixed>|null $dados_novos
+ * @property Carbon $created_at
+ */
 class HistoricoLead extends Model
 {
     public const TIPOS = [
@@ -37,11 +48,13 @@ class HistoricoLead extends Model
         'created_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<Lead, $this> */
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class, 'lead_id');
     }
 
+    /** @return BelongsTo<Usuario, $this> */
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'usuario_id');
