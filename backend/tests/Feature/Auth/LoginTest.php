@@ -86,6 +86,16 @@ test('login requer senha mínima de 8 caracteres', function () {
         ->assertJsonValidationErrors(['senha']);
 });
 
+test('login rejeita email com injeção de CRLF', function () {
+    $resposta = $this->postJson('/api/auth/login', [
+        'email' => "teste@koracrm.com.br\r\nBcc: vitima@exemplo.com",
+        'senha' => 'senha123456',
+    ]);
+
+    $resposta->assertStatus(422)
+        ->assertJsonValidationErrors(['email']);
+});
+
 test('usuário realiza logout com sucesso', function () {
     $usuario = criarUsuario();
     $token = $usuario->createToken('api-token')->plainTextToken;

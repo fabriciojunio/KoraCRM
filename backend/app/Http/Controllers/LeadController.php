@@ -17,6 +17,8 @@ use App\Models\Arquivo;
 use App\Models\Lead;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @OA\Tag(name="Leads", description="Gestão de leads")
@@ -331,5 +333,53 @@ class LeadController extends Controller
             'url' => $arquivo->urlAcesso(),
             'enviado_em' => $arquivo->created_at->toISOString(),
         ], 201);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/leads/{id}/arquivos/{arquivo}",
+     *     tags={"Leads"},
+     *     summary="Baixa um arquivo anexo do lead (acesso autenticado e autorizado)",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Response(response=200, description="Conteúdo do arquivo"),
+     *     @OA\Response(response=403, description="Sem permissão"),
+     *     @OA\Response(response=404, description="Arquivo não encontrado")
+     * )
+     */
+    public function baixarArquivo(Request $request, int $lead, int $arquivo): Response
+    {
+        $modelo = $this->repositorio->buscarPorId($lead);
+
+        if (! $modelo) {
+            return response()->json(['mensagem' => 'Lead não encontrado.'], 404);
+        }
+
+        // Só quem pode ver o lead pode baixar seus anexos.
+        $this->authorize('view', $modelo);
+
+        $anexo = Arquivo::where('id', $arquivo)
+            ->where('lead_id', $modelo->id)
+            ->first();
+
+        if (! $anexo) {
+            return response()->json(['mensagem' => 'Arquivo não encontrado.'], 404);
+        }
+
+        // No S3 a entrega usa URL assinada temporária; em disco local o
+        // conteúdo é transmitido pela própria API, sempre como anexo.
+        if ($anexo->disco === 's3') {
+            return redirect()->away($anexo->urlAcesso());
+        }
+
+        $disco = Storage::disk('local');
+
+        if (! $disco->exists($anexo->caminho)) {
+            return response()->json(['mensagem' => 'Arquivo não encontrado.'], 404);
+        }
+
+        return $disco->download($anexo->caminho, $anexo->nome_original, [
+            'Content-Type' => $anexo->mime_type,
+        ]);
     }
 }
