@@ -7,8 +7,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property int $id
+ * @property string $nome
+ * @property string $email
+ * @property string $senha
+ * @property string $perfil
+ * @property bool $ativo
+ * @property string|null $avatar
+ * @property Carbon|null $ultimo_acesso
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
+ */
 class Usuario extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
